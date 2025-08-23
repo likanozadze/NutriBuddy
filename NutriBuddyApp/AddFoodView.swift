@@ -16,6 +16,8 @@ struct AddFoodView: View {
     @State private var caloriesPer100g = ""
     @State private var proteinPer100g = ""
     @State private var grams = ""
+    
+    var selectedDate: Date
 
     var body: some View {
         Form {
@@ -32,9 +34,11 @@ struct AddFoodView: View {
                     name: name,
                     caloriesPer100g: Double(caloriesPer100g) ?? 0,
                     proteinPer100g: Double(proteinPer100g) ?? 0,
-                    grams: Double(grams) ?? 0
+                    grams: Double(grams) ?? 0,
+                    date: selectedDate
                 )
                 context.insert(food)
+                try? context.save()
                 dismiss()
             }
         }
