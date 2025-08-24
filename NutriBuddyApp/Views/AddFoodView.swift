@@ -36,9 +36,6 @@ struct AddFoodView: View {
             .navigationTitle("Add Food")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button("Save") { saveFood() }
                         .disabled(!isValidForm)
