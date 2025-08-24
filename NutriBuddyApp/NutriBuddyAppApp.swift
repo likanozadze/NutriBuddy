@@ -6,13 +6,35 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
-struct NutriBuddyAppApp: App {
+struct NutriBuddyApp: App {
     var body: some Scene {
         WindowGroup {
-            FoodListView()
+            MainAppView()
         }
-        .modelContainer(for: FoodEntry.self)
+        .modelContainer(for: [FoodEntry.self, UserProfile.self])
+    }
+}
+
+struct MainAppView: View {
+    @Query private var profiles: [UserProfile]
+    @State private var showOnboarding = false
+    
+    var body: some View {
+        Group {
+            if profiles.isEmpty {
+                OnboardingView {
+                    // This closure runs when onboarding completes
+                    showOnboarding = false
+                }
+            } else {
+                FoodListView()
+            }
+        }
+        .onAppear {
+            showOnboarding = profiles.isEmpty
+        }
     }
 }

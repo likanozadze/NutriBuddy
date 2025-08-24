@@ -31,25 +31,3 @@ final class FoodEntry {
         (proteinPer100g * grams) / 100
     }
 }
-
-//// MARK: - Extensions
-//extension Calendar {
-//    func isDate(_ date1: Date, sameDayAs date2: Date) -> Bool {
-//        isDate(date1, inSameDayAs: date2)
-//    }
-//}
-
-//extension Double {
-//    var asCalorieString: String {
-//        "\(Int(self)) kcal"
-//    }
-//    
-//    var asProteinString: String {
-//        String(format: "%.1f g", self)
-//    }
-//    
-//    var asGramString: String {
-//        "\(Int(self)) g"
-//    }
-//}
-//
