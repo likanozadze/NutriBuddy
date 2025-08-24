@@ -23,28 +23,33 @@ struct MainAppView: View {
     @State private var showOnboarding = false
     
     var body: some View {
-        TabView {
         Group {
             if profiles.isEmpty {
                 OnboardingView {
-                   
                     showOnboarding = false
                 }
             } else {
-                FoodListView()
+     
+                TabView {
+                  
+                    FoodListView()
+                        .tabItem {
+                            Label("Food", systemImage: "list.bullet")
+                        }
+
+                    AddFoodView(selectedDate: Date())
+                           .tabItem {
+                               Label("Add Food", systemImage: "plus.circle")
+                           }
+
+                    ProfileView()
+                        .tabItem {
+                            Label("Profile", systemImage: "person.circle")
+                        }
+                }
+                .accentColor(.blue) 
             }
         }
-        
-        .tabItem {
-                       Label("Food", systemImage: "list.bullet")
-                   }
-                   
-                   ProfileView()
-                       .tabItem {
-                           Label("Profile", systemImage: "person.circle")
-                       }
-               }
-    
         .onAppear {
             showOnboarding = profiles.isEmpty
         }

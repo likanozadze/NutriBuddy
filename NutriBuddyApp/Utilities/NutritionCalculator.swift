@@ -19,6 +19,6 @@ final class NutritionCalculator {
     
     static func filterFoodsForDate(_ foods: [FoodEntry], date: Date) -> [FoodEntry] {
         foods.filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
-      //  foods.filter { Calendar.current.isDate($0.date, sameDayAs: date) }
+    
     }
 }
