@@ -23,8 +23,7 @@ struct CalorieProgressCard: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
+    LinearGradient(
                 gradient: Gradient(colors: [
                     Color.blue.opacity(0.8),
                     Color.purple.opacity(0.6)
@@ -94,7 +93,7 @@ struct CalorieProgressCard: View {
             }
             .padding(20)
         }
-        .frame(height: 140)
+      //  .frame(height: 160) 
     }
     
     private var dateString: String {

@@ -16,16 +16,20 @@ struct FoodListView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 DateNavigator(viewModel: viewModel)
                 DailySummaryView(viewModel: viewModel)
-                FoodListSection(
-                    foods: viewModel.dailyFoods,
-                    onDelete: viewModel.deleteFoods
-                )
+                ScrollView {
+                    FoodListSection(
+                        foods: viewModel.dailyFoods,
+                        onDelete: viewModel.deleteFoods
+                    )
+                }
+               // .frame(height: 300)
             }
-            .navigationTitle("")
+            //  .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .background(Color.white)
             //.toolbar {
 //                ToolbarItem(placement: .principal) {
 //                    DateNavigator(viewModel: viewModel)
