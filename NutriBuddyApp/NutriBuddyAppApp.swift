@@ -11,7 +11,7 @@ import SwiftUI
 struct NutriBuddyAppApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            FoodListView()
         }
         .modelContainer(for: FoodEntry.self)
     }
