@@ -23,16 +23,28 @@ struct MainAppView: View {
     @State private var showOnboarding = false
     
     var body: some View {
+        TabView {
         Group {
             if profiles.isEmpty {
                 OnboardingView {
-                    // This closure runs when onboarding completes
+                   
                     showOnboarding = false
                 }
             } else {
                 FoodListView()
             }
         }
+        
+        .tabItem {
+                       Label("Food", systemImage: "list.bullet")
+                   }
+                   
+                   ProfileView()
+                       .tabItem {
+                           Label("Profile", systemImage: "person.circle")
+                       }
+               }
+    
         .onAppear {
             showOnboarding = profiles.isEmpty
         }

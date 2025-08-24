@@ -12,6 +12,7 @@ import SwiftData
 struct FoodListView: View {
     @Query private var allFoods: [FoodEntry]
     @State private var selectedDate = Date()
+    @Query var profiles: [UserProfile]
     @Environment(\.modelContext) private var context
     
     private var dailyFoods: [FoodEntry] {
@@ -25,6 +26,16 @@ struct FoodListView: View {
     private var totalProtein: Double {
         NutritionCalculator.calculateTotalProtein(from: dailyFoods)
     }
+    
+    private var currentProfile: UserProfile? {
+           profiles.first
+       }
+
+       private var caloriesRemaining: Double {
+           guard let profile = currentProfile else { return 0 }
+           return profile.dailyCalorieTarget - totalCalories
+       }
+    
     
     var body: some View {
         NavigationStack {
@@ -47,18 +58,34 @@ struct FoodListView: View {
     }
     
     private var dailySummarySection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Total: \(totalCalories.asCalorieString)")
-                .font(.headline)
-            Text("Protein: \(totalProtein.asProteinString)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal)
-        .padding(.bottom, 8)
-    }
-    
+           VStack(alignment: .leading, spacing: 8) {
+               if let profile = currentProfile {
+                   VStack(alignment: .leading, spacing: 4) {
+                       Text("Daily Target: \(Int(profile.dailyCalorieTarget)) kcal")
+                           .font(.headline)
+                       Text("Eaten: \(totalCalories.asCalorieString)")
+                           .font(.subheadline)
+                           .foregroundStyle(.secondary)
+                       Text("Remaining: \(caloriesRemaining.asCalorieString)")
+                           .font(.subheadline)
+                           .foregroundStyle(caloriesRemaining >= 0 ? .green : .red)
+                   }
+                   .padding(.horizontal)
+               } else {
+                   Text("Set up your profile to see your daily target")
+                       .font(.subheadline)
+                       .foregroundStyle(.secondary)
+                       .padding(.horizontal)
+               }
+
+               Text("Protein: \(totalProtein.asProteinString)")
+                   .font(.subheadline)
+                   .foregroundStyle(.secondary)
+                   .padding(.horizontal)
+           }
+           .padding(.bottom, 8)
+       }
+
     private var foodListSection: some View {
         List {
             ForEach(dailyFoods) { food in

@@ -330,3 +330,15 @@ struct OnboardingView: View {
         onComplete()
     }
 }
+
+#Preview {
+    
+    let container = try! ModelContainer(for: UserProfile.self)
+
+    NavigationStack {
+        OnboardingView {
+            print("Onboarding complete!")
+        }
+        .environment(\.modelContext, container.mainContext)
+    }
+}
