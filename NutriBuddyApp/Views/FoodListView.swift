@@ -13,6 +13,7 @@ struct FoodListView: View {
     @Query private var allFoods: [FoodEntry]
     @State private var selectedDate = Date()
     @Query var profiles: [UserProfile]
+
     @Environment(\.modelContext) private var context
     
     private var dailyFoods: [FoodEntry] {
@@ -40,7 +41,7 @@ struct FoodListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                datePickerSection
+                dateNavigatorSection
                 dailySummarySection
                 foodListSection
             }
@@ -51,10 +52,46 @@ struct FoodListView: View {
         }
     }
     
-    private var datePickerSection: some View {
-        DatePicker("Select day", selection: $selectedDate, displayedComponents: .date)
-            .datePickerStyle(.compact)
-            .padding()
+
+    private var dateNavigatorSection: some View {
+           HStack {
+               Button {
+                   selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) ?? selectedDate
+               } label: {
+                   Image(systemName: "chevron.left")
+                       .font(.title3)
+               }
+               
+               Spacer()
+               
+               Text(dateLabel(for: selectedDate))
+                   .font(.headline)
+               
+               Spacer()
+               
+               Button {
+                   selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? selectedDate
+               } label: {
+                   Image(systemName: "chevron.right")
+                       .font(.title3)
+               }
+           }
+           .padding()
+       }
+            
+    private func dateLabel(for date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        }
     }
     
     private var dailySummarySection: some View {

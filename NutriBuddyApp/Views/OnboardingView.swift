@@ -63,9 +63,8 @@ struct OnboardingView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Profile Setup")
-            .navigationBarTitleDisplayMode(.inline)
         }
+        .navigationBarHidden(true)
     }
     
     // MARK: - Step Views
