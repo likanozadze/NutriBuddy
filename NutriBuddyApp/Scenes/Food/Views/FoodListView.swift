@@ -22,6 +22,7 @@ struct FoodListView: View {
                 ScrollView {
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
+                        selectedDate: foodListViewModel.selectedDate, 
                         onDelete: foodListViewModel.deleteFoods
                     )
                 }
@@ -43,7 +44,6 @@ struct FoodListView: View {
     }
     
     private func updateProgressData() {
-      
         let dailyFoods = NutritionCalculator.filterFoodsForDate(
             allFoods,
             date: foodListViewModel.selectedDate

@@ -10,11 +10,13 @@ import SwiftData
 
 struct FoodListSection: View {
     let foods: [FoodEntry]
+    let selectedDate: Date
     let onDelete: (IndexSet) -> Void
+    @State private var showingAddFood = false
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+          
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "fork.knife")
@@ -38,10 +40,11 @@ struct FoodListSection: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             
-            
             if foods.isEmpty {
-                EmptyFoodLogView()
-                    .padding(.vertical, 32)
+                EmptyFoodLogView(onAddFood: {
+                    showingAddFood = true
+                })
+                .padding(.vertical, 32)
             } else {
                 List {
                     ForEach(foods, id: \.id) { food in
@@ -58,34 +61,61 @@ struct FoodListSection: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .onDelete(perform: onDelete)
-
                 }
                 .listStyle(.plain)
                 .frame(height: 300)
+                
+               
+                Button(action: {
+                    showingAddFood = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .medium))
+                        Text("Add Food")
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(.orange)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
             }
         }
         .background(Color(.systemGroupedBackground).opacity(0.3))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .sheet(isPresented: $showingAddFood) {
+            AddFoodView(selectedDate: selectedDate)
+        }
     }
 }
 
 struct EmptyFoodLogView: View {
+    let onAddFood: () -> Void
+    
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "plus.circle")
-                .font(.system(size: 48))
-                .foregroundColor(.orange.opacity(0.6))
+            Button(action: {
+                onAddFood()
+            }) {
+                Image(systemName: "plus.circle")
+                    .font(.system(size: 48))
+                    .foregroundColor(.orange.opacity(0.6))
+            }
+            .buttonStyle(.plain) 
             
             VStack(spacing: 4) {
                 Text("No food logged yet")
                     .font(.headline)
                     .foregroundColor(.primary)
                 
-                Text("Tap 'Add Food' to start tracking")
+                Text("Tap the plus circle to start tracking")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
         }
     }
 }
-
