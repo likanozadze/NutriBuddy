@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 final class NutritionCalculator {
     static func calculateTotalCalories(from foods: [FoodEntry]) -> Double {
         foods.reduce(0) { $0 + $1.totalCalories }
