@@ -9,7 +9,6 @@ import SwiftUI
 import SwiftData
 import Foundation
 
-// MARK: - ViewModel
 @Observable
 class FoodListViewModel {
     var selectedDate = Date()

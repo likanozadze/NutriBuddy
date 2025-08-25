@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ProfileView: View {
-    @Query var profiles: [UserProfile] // should only have 1 profile for now
+    @Query var profiles: [UserProfile] 
     @Environment(\.modelContext) private var context
     
     @State private var age: String = ""

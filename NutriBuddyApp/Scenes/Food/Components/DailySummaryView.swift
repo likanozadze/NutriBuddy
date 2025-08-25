@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct DailySummaryView: View {
-    let viewModel: FoodListViewModel
+    @ObservedObject var viewModel: ProgressViewModel
     
     var body: some View {
         ProgressCardView(viewModel: viewModel)

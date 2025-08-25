@@ -6,24 +6,12 @@
 //
 
 import SwiftUI
-
 struct CalorieProgressCard: View {
-    let target: Double
-    let eaten: Double
-    let remaining: Double
-    
-    private var progress: Double {
-        guard target > 0 else { return 0 }
-        return min(eaten / target, 1.0)
-    }
-    
-    private var progressPercentage: Int {
-        Int((progress * 100).rounded())
-    }
+    @ObservedObject var viewModel: CalorieProgressViewModel
     
     var body: some View {
         ZStack {
-    LinearGradient(
+            LinearGradient(
                 gradient: Gradient(colors: [
                     Color.blue.opacity(0.8),
                     Color.purple.opacity(0.6)
@@ -45,22 +33,22 @@ struct CalorieProgressCard: View {
                             .foregroundColor(.white.opacity(0.9))
                     }
                     
-                    Text("\(progressPercentage)%")
+                    Text("\(viewModel.progress.progressPercentage)%")
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
-                    Text(dateString)
+                    Text(viewModel.formattedDate)
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
                     
                     Spacer()
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Target: \(Int(target)) kcal")
+                        Text("Target: \(viewModel.targetText)")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.9))
                         
-                        Text("Eaten: \(Int(eaten)) kcal")
+                        Text("Eaten: \(viewModel.eatenText)")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.9))
                     }
@@ -68,39 +56,14 @@ struct CalorieProgressCard: View {
                 
                 Spacer()
                 
-
-                ZStack {
-                    Circle()
-                        .stroke(Color.white.opacity(0.3), lineWidth: 8)
-                        .frame(width: 80, height: 80)
-                    
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(Color.white, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                        .frame(width: 80, height: 80)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 1.0), value: progress)
-                    
-                    Text("\(Int(eaten))")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
-                    
-                    Text("Calories")
-                        .font(.system(size: 8, weight: .medium))
-                        .foregroundColor(.white.opacity(0.8))
-                        .offset(y: 12)
-                }
+                CircularProgressView(
+                    progress: viewModel.progress.progress,
+                    value: Int(viewModel.progress.eaten),
+                    label: "Calories"
+                )
             }
             .padding(20)
         }
-      //  .frame(height: 160) 
-    }
-    
-    private var dateString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd MMMM yyyy"
-        return formatter.string(from: Date())
     }
 }
-
 
