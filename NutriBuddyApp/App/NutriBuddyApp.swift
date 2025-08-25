@@ -37,11 +37,6 @@ struct MainAppView: View {
                             Label("Food", systemImage: "list.bullet")
                         }
 
-                    AddFoodView(selectedDate: Date())
-                           .tabItem {
-                               Label("Add Food", systemImage: "plus.circle")
-                           }
-
                     ProfileView()
                         .tabItem {
                             Label("Profile", systemImage: "person.circle")

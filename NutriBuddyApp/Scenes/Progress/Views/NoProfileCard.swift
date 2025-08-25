@@ -13,7 +13,7 @@ struct NoProfileCard: View {
         VStack(spacing: 16) {
             Image(systemName: "person.circle.fill")
                 .font(.system(size: 48))
-                .foregroundColor(.grayText.opacity(0.6))
+                .foregroundColor(.secondaryText.opacity(0.6))
             
             Text("No Profile Found")
                 .font(.headline)

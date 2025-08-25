@@ -70,12 +70,10 @@ struct FoodListSection: View {
                     showingAddFood = true
                 }) {
                     HStack {
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .medium))
                         Text("Add Food")
                             .font(.system(size: 16, weight: .medium))
                     }
-                    .foregroundColor(.whiteText)
+                    .foregroundColor(Color.appBackground)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(Color.customOrange)

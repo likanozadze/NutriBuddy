@@ -4,7 +4,7 @@
 //
 //  Created by Lika Nozadze on 8/23/25.
 //
-
+//
 import SwiftUI
 import SwiftData
 
@@ -106,6 +106,12 @@ struct AddFoodView: View {
         )
         
         context.insert(food)
-        dismiss() 
-    }
+        do {
+               try context.save()
+           } catch {
+               print("Failed to save food: \(error)")
+           }
+           
+           dismiss()
+       }
 }

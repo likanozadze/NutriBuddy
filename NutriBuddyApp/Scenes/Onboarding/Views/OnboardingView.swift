@@ -23,11 +23,11 @@ struct OnboardingView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-  
+                
                 ProgressView(value: Double(currentStep), total: 6)
                     .padding()
                 
-         
+                
                 switch currentStep {
                 case 0: welcomeStep
                 case 1: ageStep
@@ -40,7 +40,7 @@ struct OnboardingView: View {
                 
                 Spacer()
                 
-             
+                
                 HStack {
                     if currentStep > 0 {
                         Button("Back") {
@@ -207,15 +207,154 @@ struct OnboardingView: View {
         .padding()
     }
     
+    //    private var goalStep: some View {
+    //        VStack(spacing: 30) {
+    //            Image(systemName: "target")
+    //                .font(.system(size: 60))
+    //                .foregroundColor(.blue)
+    //
+    //            Text("What's your goal?")
+    //                .font(.title2)
+    //                .fontWeight(.semibold)
+    //
+    //
+    //            VStack(alignment: .leading, spacing: 15) {
+    //                ForEach(WeightGoal.allCases, id: \.self) { goal in
+    //                    Button(action: {
+    //                        selectedGoal = goal
+    //                    }) {
+    //                        HStack {
+    //                            Image(systemName: selectedGoal == goal ? "checkmark.circle.fill" : "circle")
+    //                                .foregroundColor(selectedGoal == goal ? .blue : .grayText)
+    //
+    //                            Text(goal.rawValue)
+    //                                .foregroundColor(.primaryText)
+    //
+    //                            Spacer()
+    //                        }
+    //                        .padding()
+    //                        .background(
+    //                            RoundedRectangle(cornerRadius: 12)
+    //                                .fill(selectedGoal == goal ? Color.blue.opacity(0.1) : Color.grayText.opacity(0.1))
+    //                        )
+    //                    }
+    //                    .buttonStyle(.plain)
+    //                }
+    //            }
+    //        }
+    //        .padding()
+    //    }
+    //
+    //    private var completionStep: some View {
+    //        VStack(spacing: 30) {
+    //            Image(systemName: "checkmark.circle.fill")
+    //                .font(.system(size: 80))
+    //                .foregroundColor(.green)
+    //
+    //            Text("All Set!")
+    //                .font(.largeTitle)
+    //                .fontWeight(.bold)
+    //
+    //            if let ageInt = Int(age),
+    //               let weightDouble = Double(weight),
+    //               let heightInt = Int(height) {
+    //
+    //                let tempProfile = UserProfile(
+    //                    age: ageInt,
+    //                    weight: weightDouble,
+    //                    height: heightInt,
+    //                    gender: selectedGender,
+    //                    activityLevel: selectedActivity,
+    //                    goal: selectedGoal
+    //                )
+    //
+    //                VStack(spacing: 10) {
+    //                    Text("Your daily calorie goal:")
+    //                        .font(.headline)
+    //
+    //                    Text("\(Int(tempProfile.dailyCalorieTarget)) kcal")
+    //                        .font(.system(size: 36, weight: .bold))
+    //                        .foregroundColor(.blue)
+    //
+    //                    Text("Based on your profile and \(selectedGoal.rawValue.lowercased())")
+    //                        .font(.caption)
+    //                        .foregroundColor(.secondary)
+    //                        .multilineTextAlignment(.center)
+    //                }
+    //                .padding()
+    //                .background(
+    //                    RoundedRectangle(cornerRadius: 12)
+    //                        .fill(Color.blue.opacity(0.1))
+    //                )
+    //            }
+    //
+    //            Text("You can always update your profile later")
+    //                .font(.caption)
+    //                .foregroundColor(.secondary)
+    //        }
+    //        .padding()
+    //    }
+    //
+    //    // MARK: - Helper Properties
+    //
+    //    private var canProceed: Bool {
+    //        switch currentStep {
+    //        case 0: return true
+    //        case 1: return !age.isEmpty && Int(age) != nil
+    //        case 2: return !weight.isEmpty && Double(weight) != nil
+    //        case 3: return !height.isEmpty && Int(height) != nil
+    //        case 4: return true
+    //        case 5: return true
+    //        case 6: return true
+    //        default: return false
+    //        }
+    //    }
+    //
+    //    // MARK: - Actions
+    //
+    //    private func saveProfile() {
+    //        guard let ageInt = Int(age),
+    //              let weightDouble = Double(weight),
+    //              let heightInt = Int(height) else { return }
+    //
+    //        let profile = UserProfile(
+    //            age: ageInt,
+    //            weight: weightDouble,
+    //            height: heightInt,
+    //            gender: selectedGender,
+    //            activityLevel: selectedActivity,
+    //            goal: selectedGoal
+    //        )
+    //
+    //        context.insert(profile)
+    //        onComplete()
+    //    }
+    //}
+    //
+    //#Preview {
+    //
+    //    let container = try! ModelContainer(for: UserProfile.self)
+    //
+    //    NavigationStack {
+    //        OnboardingView {
+    //            print("Onboarding complete!")
+    //        }
+    //        .environment(\.modelContext, container.mainContext)
+    //    }
+    //}
+    
+    
+    // MARK: - Fixed Goal Step
     private var goalStep: some View {
         VStack(spacing: 30) {
             Image(systemName: "target")
                 .font(.system(size: 60))
-                .foregroundColor(.blue)
+                .foregroundColor(.customBlue)
             
             Text("What's your goal?")
                 .font(.title2)
                 .fontWeight(.semibold)
+                .foregroundColor(.primaryText)
             
             VStack(alignment: .leading, spacing: 15) {
                 ForEach(WeightGoal.allCases, id: \.self) { goal in
@@ -224,7 +363,7 @@ struct OnboardingView: View {
                     }) {
                         HStack {
                             Image(systemName: selectedGoal == goal ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(selectedGoal == goal ? .blue : .grayText)
+                                .foregroundColor(selectedGoal == goal ? .customBlue : .secondaryText)
                             
                             Text(goal.rawValue)
                                 .foregroundColor(.primaryText)
@@ -234,7 +373,7 @@ struct OnboardingView: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(selectedGoal == goal ? Color.blue.opacity(0.1) : Color.grayText.opacity(0.1))
+                                .fill(selectedGoal == goal ? Color.customBlue.opacity(0.1) : Color.secondaryText.opacity(0.1))
                         )
                     }
                     .buttonStyle(.plain)
@@ -244,77 +383,114 @@ struct OnboardingView: View {
         .padding()
     }
     
+    // MARK: - Fixed Completion Step (Broken into smaller parts)
     private var completionStep: some View {
         VStack(spacing: 30) {
+            completionHeader
+            calorieGoalCard
+            completionFooter
+        }
+        .padding()
+    }
+    
+    private var completionHeader: some View {
+        VStack(spacing: 15) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.green)
+                .foregroundColor(.customGreen)
             
             Text("All Set!")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-            
-            if let ageInt = Int(age),
-               let weightDouble = Double(weight),
-               let heightInt = Int(height) {
-                
-                let tempProfile = UserProfile(
-                    age: ageInt,
-                    weight: weightDouble,
-                    height: heightInt,
-                    gender: selectedGender,
-                    activityLevel: selectedActivity,
-                    goal: selectedGoal
-                )
-                
+                .foregroundColor(.primaryText)
+        }
+    }
+    
+    private var calorieGoalCard: some View {
+        Group {
+            if let calculatedCalories = calculateDailyCalories() {
                 VStack(spacing: 10) {
                     Text("Your daily calorie goal:")
                         .font(.headline)
+                        .foregroundColor(.primaryText)
                     
-                    Text("\(Int(tempProfile.dailyCalorieTarget)) kcal")
+                    Text("\(calculatedCalories) kcal")
                         .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.customBlue)
                     
                     Text("Based on your profile and \(selectedGoal.rawValue.lowercased())")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.secondaryText)
                         .multilineTextAlignment(.center)
                 }
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.blue.opacity(0.1))
+                        .fill(Color.customBlue.opacity(0.1))
                 )
             }
-            
-            Text("You can always update your profile later")
-                .font(.caption)
-                .foregroundColor(.secondary)
         }
-        .padding()
     }
     
-    // MARK: - Helper Properties
+    private var completionFooter: some View {
+        Text("You can always update your profile later")
+            .font(.caption)
+            .foregroundColor(.secondaryText)
+    }
     
+    // MARK: - Helper Methods
+    private func calculateDailyCalories() -> Int? {
+        guard let ageInt = Int(age),
+              let weightDouble = Double(weight),
+              let heightInt = Int(height) else { return nil }
+        
+        let tempProfile = UserProfile(
+            age: ageInt,
+            weight: weightDouble,
+            height: heightInt,
+            gender: selectedGender,
+            activityLevel: selectedActivity,
+            goal: selectedGoal
+        )
+        
+        return Int(tempProfile.dailyCalorieTarget)
+    }
+    
+    // MARK: - Fixed canProceed (simplified)
     private var canProceed: Bool {
         switch currentStep {
         case 0: return true
-        case 1: return !age.isEmpty && Int(age) != nil
-        case 2: return !weight.isEmpty && Double(weight) != nil
-        case 3: return !height.isEmpty && Int(height) != nil
-        case 4: return true
-        case 5: return true
-        case 6: return true
+        case 1: return isValidAge
+        case 2: return isValidWeight
+        case 3: return isValidHeight
+        case 4, 5, 6: return true
         default: return false
         }
     }
     
-    // MARK: - Actions
+    private var isValidAge: Bool {
+        guard let ageInt = Int(age) else { return false }
+        return ageInt >= 13 && ageInt <= 120
+    }
     
+    private var isValidWeight: Bool {
+        guard let weightDouble = Double(weight) else { return false }
+        return weightDouble >= 30 && weightDouble <= 500
+    }
+    
+    private var isValidHeight: Bool {
+        guard let heightInt = Int(height) else { return false }
+        return heightInt >= 100 && heightInt <= 250
+    }
+    
+    // MARK: - Fixed saveProfile
     private func saveProfile() {
         guard let ageInt = Int(age),
               let weightDouble = Double(weight),
-              let heightInt = Int(height) else { return }
+              let heightInt = Int(height) else {
+            print("Invalid profile data")
+            return
+        }
         
         let profile = UserProfile(
             age: ageInt,
@@ -325,19 +501,12 @@ struct OnboardingView: View {
             goal: selectedGoal
         )
         
-        context.insert(profile)
-        onComplete()
-    }
-}
-
-#Preview {
-    
-    let container = try! ModelContainer(for: UserProfile.self)
-
-    NavigationStack {
-        OnboardingView {
-            print("Onboarding complete!")
+        do {
+            context.insert(profile)
+            try context.save()
+            onComplete()
+        } catch {
+            print("Failed to save profile: \(error)")
         }
-        .environment(\.modelContext, container.mainContext)
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+
 struct CalorieProgressCard: View {
     @ObservedObject var viewModel: CalorieProgressViewModel
     
@@ -13,8 +14,8 @@ struct CalorieProgressCard: View {
         ZStack {
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.blue.opacity(0.8),
-                    Color.purple.opacity(0.6)
+                    Color.gradientStart,
+                    Color.gradientEnd
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -25,32 +26,32 @@ struct CalorieProgressCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "target")
-                            .foregroundColor(.whiteText.opacity(0.9))
+                            .foregroundColor(.gradientSecondaryText)
                             .font(.title3)
                         
                         Text("Your Progress")
                             .font(.subheadline)
-                            .foregroundColor(.whiteText.opacity(0.9))
+                            .foregroundColor(.gradientSecondaryText)
                     }
                     
                     Text("\(viewModel.progress.progressPercentage)%")
                         .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundColor(.whiteText)
+                        .foregroundColor(.gradientPrimaryText)
                     
                     Text(viewModel.formattedDate)
                         .font(.caption)
-                        .foregroundColor(.whiteText.opacity(0.8))
+                        .foregroundColor(.gradientTertiaryText)
                     
                     Spacer()
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Target: \(viewModel.targetText)")
                             .font(.caption)
-                            .foregroundColor(.whiteText.opacity(0.9))
+                            .foregroundColor(.gradientSecondaryText)
                         
                         Text("Eaten: \(viewModel.eatenText)")
                             .font(.caption)
-                            .foregroundColor(.whiteText.opacity(0.9))
+                            .foregroundColor(.gradientSecondaryText)
                     }
                 }
                 
@@ -66,4 +67,3 @@ struct CalorieProgressCard: View {
         }
     }
 }
-
