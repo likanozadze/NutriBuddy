@@ -84,7 +84,7 @@ struct MacroCircularProgress: View {
             VStack(spacing: 0) {
                 Text("\(Int(macro.current))")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
+                    .foregroundColor(.primaryText)
                 
                 Text(formattedUnit(macro.unit))
                     .font(.system(size: 10, weight: .semibold))
@@ -105,7 +105,7 @@ struct MacroDetailsView: View {
         VStack(spacing: 2) {
             Text(macro.title)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.primary)
+                .foregroundColor(.primaryText)
             
             Text("\(macro.current.asGramString)/\(macro.target.asGramString)")
                 .font(.system(size: 10, weight: .medium))

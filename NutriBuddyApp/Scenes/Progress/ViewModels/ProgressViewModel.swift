@@ -66,7 +66,7 @@ class ProgressViewModel: ObservableObject {
                 current: totalCarbs,
                 target: profile.carbTarget,
                 unit: "g",
-                color: .orange
+                color: .customOrange
             )
         ]
     }

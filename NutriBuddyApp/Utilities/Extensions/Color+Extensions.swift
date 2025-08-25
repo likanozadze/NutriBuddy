@@ -15,10 +15,11 @@ extension Color {
     static let whiteText = Color.white
 
     // MARK: - App Custom Colors
-    static let customOrange = Color("CustomOrange")
-    static let customBlue = Color("CustomBlue")
-    static let customPurple = Color("CustomPurple")
-    static let customGreen = Color("CustomGreen")
+    
+    static let customOrange = Color(red: 1.0, green: 0.5, blue: 0.0)
+    static let customGreen  = Color(red: 0.0, green: 0.7, blue: 0.3)
+    static let customBlue   = Color(red: 0.0, green: 0.5, blue: 1.0)
+    static let customPurple = Color(red: 0.6, green: 0.2, blue: 0.8)
 
     // MARK: - Experimental / Gradients
     static let gradientStart = Color.blue.opacity(0.8)

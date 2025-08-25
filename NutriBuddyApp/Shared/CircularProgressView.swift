@@ -15,12 +15,12 @@ struct CircularProgressView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.white.opacity(0.3), lineWidth: 8)
+                .stroke(Color.whiteText.opacity(0.3), lineWidth: 8)
                 .frame(width: 80, height: 80)
             
             Circle()
                 .trim(from: 0, to: progress)
-                .stroke(Color.white, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                .stroke(Color.whiteText, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                 .frame(width: 80, height: 80)
                 .rotationEffect(.degrees(-90))
                 .animation(.easeInOut(duration: 1.0), value: progress)
@@ -28,11 +28,11 @@ struct CircularProgressView: View {
             VStack(spacing: 2) {
                 Text("\(value)")
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(.whiteText)
                 
                 Text(label)
                     .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(.whiteText.opacity(0.8))
             }
         }
     }

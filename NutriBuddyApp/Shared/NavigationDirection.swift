@@ -26,7 +26,7 @@ struct NavigationButton: View {
         Button(action: action) {
             Image(systemName: direction.systemName)
                 .font(.title3)
-                .foregroundColor(.primary)
+                .foregroundColor(.primaryText)
         }
     }
 }

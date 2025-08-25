@@ -20,15 +20,15 @@ struct FoodListSection: View {
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "fork.knife")
-                        .foregroundColor(.orange)
+                        .foregroundColor(.customOrange)
                         .font(.title3)
                         .frame(width: 32, height: 32)
-                        .background(Circle().fill(.orange.opacity(0.1)))
+                        .background(Circle().fill(Color.customOrange.opacity(0.1)))
                     
                     Text("Food log")
                         .font(.title3)
                         .fontWeight(.semibold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.primaryText)
                 }
                 
                 Spacer()
@@ -75,10 +75,10 @@ struct FoodListSection: View {
                         Text("Add Food")
                             .font(.system(size: 16, weight: .medium))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.whiteText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(.orange)
+                    .background(Color.customOrange)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .padding(.horizontal, 16)
@@ -103,14 +103,14 @@ struct EmptyFoodLogView: View {
             }) {
                 Image(systemName: "plus.circle")
                     .font(.system(size: 48))
-                    .foregroundColor(.orange.opacity(0.6))
+                    .foregroundColor(.customOrange.opacity(0.6))
             }
             .buttonStyle(.plain) 
             
             VStack(spacing: 4) {
                 Text("No food logged yet")
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.primaryText)
                 
                 Text("Tap the plus circle to start tracking")
                     .font(.subheadline)

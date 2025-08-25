@@ -14,6 +14,6 @@ struct DateLabel: View {
         Text(text)
             .font(.headline)
             .fontWeight(.semibold)
-            .foregroundColor(.primary)
+            .foregroundColor(.primaryText)
     }
 }

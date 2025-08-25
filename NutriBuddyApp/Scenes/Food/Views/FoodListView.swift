@@ -28,7 +28,7 @@ struct FoodListView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .background(Color.white)
+            .background(Color.whiteText)
             .onAppear {
                 setupViewModels()
             }

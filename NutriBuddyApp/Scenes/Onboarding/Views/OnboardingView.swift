@@ -224,17 +224,17 @@ struct OnboardingView: View {
                     }) {
                         HStack {
                             Image(systemName: selectedGoal == goal ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(selectedGoal == goal ? .blue : .gray)
+                                .foregroundColor(selectedGoal == goal ? .blue : .grayText)
                             
                             Text(goal.rawValue)
-                                .foregroundColor(.primary)
+                                .foregroundColor(.primaryText)
                             
                             Spacer()
                         }
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(selectedGoal == goal ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+                                .fill(selectedGoal == goal ? Color.blue.opacity(0.1) : Color.grayText.opacity(0.1))
                         )
                     }
                     .buttonStyle(.plain)

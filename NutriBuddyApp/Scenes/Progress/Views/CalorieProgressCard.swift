@@ -25,32 +25,32 @@ struct CalorieProgressCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "target")
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(.whiteText.opacity(0.9))
                             .font(.title3)
                         
                         Text("Your Progress")
                             .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(.whiteText.opacity(0.9))
                     }
                     
                     Text("\(viewModel.progress.progressPercentage)%")
                         .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(.whiteText)
                     
                     Text(viewModel.formattedDate)
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.whiteText.opacity(0.8))
                     
                     Spacer()
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Target: \(viewModel.targetText)")
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(.whiteText.opacity(0.9))
                         
                         Text("Eaten: \(viewModel.eatenText)")
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(.whiteText.opacity(0.9))
                     }
                 }
                 
