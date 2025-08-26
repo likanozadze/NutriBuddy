@@ -211,23 +211,23 @@ struct AddFoodView: View {
                     keyboardType: .decimalPad
                 )
                 CustomTextField(
-                               title: "Fiber per 100g",
-                               text: $fiberPer100g,
-                               icon: "scissors",
-                               placeholder: "e.g. 2.5",
-                               keyboardType: .decimalPad
-                           )
-                           
-                           CustomTextField(
-                               title: "Sugar per 100g",
-                               text: $sugarPer100g,
-                               icon: "cube.transparent",
-                               placeholder: "e.g. 4.7",
-                               keyboardType: .decimalPad
-                           )
-                       }
+                    title: "Fiber per 100g",
+                    text: $fiberPer100g,
+                    icon: "scissors",
+                    placeholder: "e.g. 2.5",
+                    keyboardType: .decimalPad
+                )
                 
+                CustomTextField(
+                    title: "Sugar per 100g",
+                    text: $sugarPer100g,
+                    icon: "cube.transparent",
+                    placeholder: "e.g. 4.7",
+                    keyboardType: .decimalPad
+                )
             }
+            
+        }
         
         .padding(20)
         .cardStyle()
@@ -267,7 +267,7 @@ struct AddFoodView: View {
                     )
                 }
                 
-            
+                
                 if showAdvancedOptions {
                     if calculatedCarbs > 0 || calculatedFat > 0 {
                         HStack(spacing: 20) {
@@ -316,7 +316,7 @@ struct AddFoodView: View {
         .padding(20)
         .cardStyle()
     }
-
+    
     
     // MARK: - Computed Properties
     private var calculatedCalories: Double {
@@ -347,23 +347,34 @@ struct AddFoodView: View {
               let gr = Double(grams), gr > 0 else { return 0 }
         return (fiber * gr) / 100
     }
-
+    
     private var calculatedSugar: Double {
         guard let sugar = Double(sugarPer100g), sugar >= 0,
               let gr = Double(grams), gr > 0 else { return 0 }
         return (sugar * gr) / 100
     }
-
     
+    
+  
     private func saveFood() {
         guard let calories = Double(caloriesPer100g),
               let protein = Double(proteinPer100g),
               let weight = Double(grams) else { return }
         
+    
+        let carbs = Double(carbsPer100g) ?? 0
+        let fat = Double(fatPer100g) ?? 0
+        let fiber = Double(fiberPer100g) ?? 0
+        let sugar = Double(sugarPer100g) ?? 0
+        
         let food = FoodEntry(
             name: name,
             caloriesPer100g: calories,
             proteinPer100g: protein,
+            carbsPer100g: carbs,
+            fatPer100g: fat,
+            fiberPer100g: fiber,
+            sugarPer100g: sugar,
             grams: weight,
             date: selectedDate
         )
@@ -378,7 +389,6 @@ struct AddFoodView: View {
         dismiss()
     }
 }
-
 struct MacroPreviewItem: View {
     let title: String
     let value: String
