@@ -27,6 +27,7 @@ struct FoodListView: View {
                     )
                 }
             }
+            .scrollIndicators(.hidden)
             .padding(16)
             .navigationBarTitleDisplayMode(.inline)
             .background(Color.appBackground)

@@ -45,11 +45,11 @@ struct CalorieProgressCard: View {
                     Spacer()
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Target: \(viewModel.targetText)")
+                        Text("Goal: \(viewModel.targetText)")
                             .font(.caption)
                             .foregroundColor(.gradientSecondaryText)
-                        
-                        Text("Eaten: \(viewModel.eatenText)")
+                    
+                        Text("Remaining: \(viewModel.remainingText)")
                             .font(.caption)
                             .foregroundColor(.gradientSecondaryText)
                     }

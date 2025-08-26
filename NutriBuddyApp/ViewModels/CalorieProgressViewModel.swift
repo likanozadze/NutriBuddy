@@ -30,4 +30,8 @@ class CalorieProgressViewModel: ObservableObject {
     var eatenText: String {
         progress.eaten.asCalorieString
     }
+    var remainingText: String {
+            let remaining = max(progress.target - progress.eaten, 0) 
+            return remaining.asCalorieString
+        }
 }
