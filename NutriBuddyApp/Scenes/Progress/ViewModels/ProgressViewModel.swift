@@ -34,7 +34,7 @@ class ProgressViewModel: ObservableObject {
       
         let totalCalories = NutritionCalculator.calculateTotalCalories(from: foods)
         let totalProtein = NutritionCalculator.calculateTotalProtein(from: foods)
-        
+        let totalCarbs = NutritionCalculator.calculateTotalCarbs(from: foods)
        
         let calorieProgress = CalorieProgress(
             target: profile.dailyCalorieTarget,
@@ -46,7 +46,7 @@ class ProgressViewModel: ObservableObject {
        
         let macros = createMacroProgress(
             totalProtein: totalProtein,
-            totalCarbs: 0, // You can add carbs calculation to NutritionCalculator
+            totalCarbs: totalCarbs,
             profile: profile
         )
         macroProgressViewModel.updateMacros(macros)

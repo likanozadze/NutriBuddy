@@ -54,16 +54,28 @@ struct MacroHeaderView: View {
         }
     }
     
+//    private func iconName(for title: String) -> String {
+//        switch title.lowercased() {
+//        case "protein": return "flame.fill"
+//        case "carbs": return "leaf.fill"
+//        case "fats": return "drop.fill"
+//        case "fiber": return "scissors"
+//        default: return "circle.fill"
+//        }
+    
     private func iconName(for title: String) -> String {
         switch title.lowercased() {
-        case "protein": return "flame.fill"
+        case "protein": return "bolt.fill"
         case "carbs": return "leaf.fill"
         case "fats": return "drop.fill"
         case "fiber": return "scissors"
+        case "sugar": return "cube.fill"
         default: return "circle.fill"
         }
     }
-}
+
+    }
+
 
 struct MacroCircularProgress: View {
     let macro: MacroProgress

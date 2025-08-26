@@ -4,8 +4,24 @@
 //
 //  Created by Lika Nozadze on 8/24/25.
 //
-
+//
 import SwiftUI
+//
+//final class NutritionCalculator {
+//    static func calculateTotalCalories(from foods: [FoodEntry]) -> Double {
+//        foods.reduce(0) { $0 + $1.totalCalories }
+//    }
+//    
+//    static func calculateTotalProtein(from foods: [FoodEntry]) -> Double {
+//        foods.reduce(0) { $0 + $1.totalProtein }
+//    }
+//    
+//    static func filterFoodsForDate(_ foods: [FoodEntry], date: Date) -> [FoodEntry] {
+//        foods.filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
+//    
+//    }
+//}
+
 
 final class NutritionCalculator {
     static func calculateTotalCalories(from foods: [FoodEntry]) -> Double {
@@ -15,9 +31,24 @@ final class NutritionCalculator {
     static func calculateTotalProtein(from foods: [FoodEntry]) -> Double {
         foods.reduce(0) { $0 + $1.totalProtein }
     }
+
+    static func calculateTotalCarbs(from foods: [FoodEntry]) -> Double {
+        foods.reduce(0) { $0 + $1.totalCarbs }
+    }
+
+    static func calculateTotalFat(from foods: [FoodEntry]) -> Double {
+        foods.reduce(0) { $0 + $1.totalFat }
+    }
+
+    static func calculateTotalFiber(from foods: [FoodEntry]) -> Double {
+        foods.reduce(0) { $0 + $1.totalFiber }
+    }
+
+    static func calculateTotalSugar(from foods: [FoodEntry]) -> Double {
+        foods.reduce(0) { $0 + $1.totalSugar }
+    }
     
     static func filterFoodsForDate(_ foods: [FoodEntry], date: Date) -> [FoodEntry] {
         foods.filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
-    
     }
 }

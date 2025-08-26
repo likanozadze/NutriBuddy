@@ -18,6 +18,8 @@ struct AddFoodView: View {
     @State private var fatPer100g = ""
     @State private var grams = ""
     @State private var showAdvancedOptions = false
+    @State private var fiberPer100g = ""
+    @State private var sugarPer100g = ""
     
     let selectedDate: Date
     
@@ -208,8 +210,25 @@ struct AddFoodView: View {
                     placeholder: "e.g. 3.6",
                     keyboardType: .decimalPad
                 )
+                CustomTextField(
+                               title: "Fiber per 100g",
+                               text: $fiberPer100g,
+                               icon: "scissors",
+                               placeholder: "e.g. 2.5",
+                               keyboardType: .decimalPad
+                           )
+                           
+                           CustomTextField(
+                               title: "Sugar per 100g",
+                               text: $sugarPer100g,
+                               icon: "cube.transparent",
+                               placeholder: "e.g. 4.7",
+                               keyboardType: .decimalPad
+                           )
+                       }
+                
             }
-        }
+        
         .padding(20)
         .cardStyle()
         .transition(.asymmetric(
@@ -231,7 +250,6 @@ struct AddFoodView: View {
                 Spacer()
             }
             
-            // Main macros in a prominent display
             VStack(spacing: 12) {
                 HStack(spacing: 20) {
                     MacroPreviewItem(
@@ -250,40 +268,55 @@ struct AddFoodView: View {
                 }
                 
             
-                if showAdvancedOptions && (calculatedCarbs > 0 || calculatedFat > 0) {
-                    HStack(spacing: 20) {
-                        MacroPreviewItem(
-                            title: "Carbs",
-                            value: calculatedCarbs.asProteinString,
-                            icon: "leaf.fill",
-                            color: .customBlue
-                        )
-                        
-                        MacroPreviewItem(
-                            title: "Fat",
-                            value: calculatedFat.asProteinString,
-                            icon: "drop.fill",
-                            color: .purple
-                        )
+                if showAdvancedOptions {
+                    if calculatedCarbs > 0 || calculatedFat > 0 {
+                        HStack(spacing: 20) {
+                            if calculatedCarbs > 0 {
+                                MacroPreviewItem(
+                                    title: "Carbs",
+                                    value: calculatedCarbs.asProteinString,
+                                    icon: "leaf.fill",
+                                    color: .customBlue
+                                )
+                            }
+                            if calculatedFat > 0 {
+                                MacroPreviewItem(
+                                    title: "Fat",
+                                    value: calculatedFat.asProteinString,
+                                    icon: "drop.fill",
+                                    color: .purple
+                                )
+                            }
+                        }
+                    }
+                    
+                    if calculatedFiber > 0 || calculatedSugar > 0 {
+                        HStack(spacing: 20) {
+                            if calculatedFiber > 0 {
+                                MacroPreviewItem(
+                                    title: "Fiber",
+                                    value: calculatedFiber.asProteinString,
+                                    icon: "scissors",
+                                    color: .brown
+                                )
+                            }
+                            if calculatedSugar > 0 {
+                                MacroPreviewItem(
+                                    title: "Sugar",
+                                    value: calculatedSugar.asProteinString,
+                                    icon: "cube.fill",
+                                    color: .pink
+                                )
+                            }
+                        }
                     }
                 }
-            }
-            
-            if calculatedCalories == 0 && calculatedProtein == 0 {
-                VStack(spacing: 8) {
-                    Image(systemName: "chart.bar.doc.horizontal")
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
-                    Text("Enter food details to see preview")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-                .padding(.vertical, 20)
             }
         }
         .padding(20)
         .cardStyle()
     }
+
     
     // MARK: - Computed Properties
     private var calculatedCalories: Double {
@@ -309,6 +342,18 @@ struct AddFoodView: View {
               let gr = Double(grams), gr > 0 else { return 0 }
         return (fat * gr) / 100
     }
+    private var calculatedFiber: Double {
+        guard let fiber = Double(fiberPer100g), fiber >= 0,
+              let gr = Double(grams), gr > 0 else { return 0 }
+        return (fiber * gr) / 100
+    }
+
+    private var calculatedSugar: Double {
+        guard let sugar = Double(sugarPer100g), sugar >= 0,
+              let gr = Double(grams), gr > 0 else { return 0 }
+        return (sugar * gr) / 100
+    }
+
     
     private func saveFood() {
         guard let calories = Double(caloriesPer100g),
@@ -333,39 +378,6 @@ struct AddFoodView: View {
         dismiss()
     }
 }
-
-//// MARK: - Custom Components
-//struct CustomTextField: View {
-//    let title: String
-//    @Binding var text: String
-//    let icon: String
-//    let placeholder: String
-//    var keyboardType: UIKeyboardType = .default
-//    
-//    var body: some View {
-//        VStack(alignment: .leading, spacing: 6) {
-//            Text(title)
-//                .font(.caption)
-//                .fontWeight(.medium)
-//                .foregroundColor(.secondaryText)
-//                .textCase(.uppercase)
-//            
-//            HStack(spacing: 12) {
-//                Image(systemName: icon)
-//                    .foregroundColor(.customBlue)
-//                    .frame(width: 20)
-//                
-//                TextField(placeholder, text: $text)
-//                    .keyboardType(keyboardType)
-//                    .foregroundColor(.primaryText)
-//            }
-//            .padding(.vertical, 12)
-//            .padding(.horizontal, 16)
-//            .background(Color.listBackground)
-//            .cornerRadius(8)
-//        }
-//    }
-//}
 
 struct MacroPreviewItem: View {
     let title: String
