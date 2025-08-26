@@ -16,7 +16,7 @@ struct MacroProgressCard: View {
             MacroHeaderView(macro: macro)
             MacroCircularProgress(macro: macro)
             MacroDetailsView(macro: macro)
-            Spacer(minLength: 0)
+Spacer(minLength: 0)
         }
         .padding(14)
         .frame(maxWidth: .infinity)
@@ -108,7 +108,7 @@ struct MacroDetailsView: View {
                 .foregroundColor(.primaryText)
             
             Text("\(macro.current.asGramString)/\(macro.target.asGramString)")
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.secondary)
                 .lineLimit(1)
         }
