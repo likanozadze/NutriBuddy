@@ -29,13 +29,13 @@ class ProgressViewModel: ObservableObject {
         calorieProgressViewModel.updateProgress(emptyProgress)
         macroProgressViewModel.updateMacros([])
     }
-    
+
     private func updateProgressWithProfile(foods: [FoodEntry], profile: UserProfile) {
-      
         let totalCalories = NutritionCalculator.calculateTotalCalories(from: foods)
         let totalProtein = NutritionCalculator.calculateTotalProtein(from: foods)
         let totalCarbs = NutritionCalculator.calculateTotalCarbs(from: foods)
-       
+        let totalFats = NutritionCalculator.calculateTotalFat(from: foods)
+        let totalFiber = NutritionCalculator.calculateTotalFiber(from: foods)
         let calorieProgress = CalorieProgress(
             target: profile.dailyCalorieTarget,
             eaten: totalCalories,
@@ -43,31 +43,28 @@ class ProgressViewModel: ObservableObject {
         )
         calorieProgressViewModel.updateProgress(calorieProgress)
         
-       
         let macros = createMacroProgress(
             totalProtein: totalProtein,
             totalCarbs: totalCarbs,
+            totalFats: totalFats,       
+            totalFiber: totalFiber,     
             profile: profile
         )
         macroProgressViewModel.updateMacros(macros)
     }
     
-    private func createMacroProgress(totalProtein: Double, totalCarbs: Double, profile: UserProfile) -> [MacroProgress] {
+    private func createMacroProgress(
+        totalProtein: Double,
+        totalCarbs: Double,
+        totalFats: Double,
+        totalFiber: Double,
+        profile: UserProfile
+    ) -> [MacroProgress] {
         return [
-            MacroProgress(
-                title: "Protein",
-                current: totalProtein,
-                target: profile.proteinTarget,
-                unit: "g",
-                color: .green
-            ),
-            MacroProgress(
-                title: "Carbs",
-                current: totalCarbs,
-                target: profile.carbTarget,
-                unit: "g",
-                color: .customOrange
-            )
-        ]
+            MacroProgress(title: "Protein", current: totalProtein, target: profile.proteinTarget, unit: "g", color: .green),
+            MacroProgress(title: "Carbs", current: totalCarbs, target: profile.carbTarget, unit: "g", color: .customOrange),
+            MacroProgress(title: "Fats", current: totalFats, target: profile.fatTarget, unit: "g", color: .yellow),
+            MacroProgress(title: "Fiber", current: totalFiber, target: profile.fiberTarget, unit: "g", color: .blue),
+          ]
     }
 }

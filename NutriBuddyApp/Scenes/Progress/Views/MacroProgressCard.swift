@@ -53,15 +53,7 @@ struct MacroHeaderView: View {
                 .foregroundColor(macro.color)
         }
     }
-    
-//    private func iconName(for title: String) -> String {
-//        switch title.lowercased() {
-//        case "protein": return "flame.fill"
-//        case "carbs": return "leaf.fill"
-//        case "fats": return "drop.fill"
-//        case "fiber": return "scissors"
-//        default: return "circle.fill"
-//        }
+
     
     private func iconName(for title: String) -> String {
         switch title.lowercased() {
