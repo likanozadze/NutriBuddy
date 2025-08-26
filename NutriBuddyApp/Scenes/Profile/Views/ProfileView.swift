@@ -5,83 +5,7 @@
 //  Created by Lika Nozadze on 8/24/25.
 //
 //
-//import SwiftUI
-//import SwiftData
-//
-//struct ProfileView: View {
-//    @Query var profiles: [UserProfile] 
-//    @Environment(\.modelContext) private var context
-//    
-//    @State private var age: String = ""
-//    @State private var weight: String = ""
-//    @State private var height: String = ""
-//    @State private var selectedGender: Gender = .male
-//    @State private var selectedActivity: ActivityLevel = .moderate
-//    @State private var selectedGoal: WeightGoal = .maintain
-//    
-//    var body: some View {
-//        NavigationStack {
-//            Form {
-//                Section("Personal Info") {
-//                    TextField("Age", text: $age).keyboardType(.numberPad)
-//                    TextField("Weight (kg)", text: $weight).keyboardType(.decimalPad)
-//                    TextField("Height (cm)", text: $height).keyboardType(.numberPad)
-//                    Picker("Gender", selection: $selectedGender) {
-//                        ForEach(Gender.allCases, id: \.self) { Text($0.rawValue) }
-//                    }
-//                }
-//                
-//                Section("Activity & Goal") {
-//                    Picker("Activity Level", selection: $selectedActivity) {
-//                        ForEach(ActivityLevel.allCases, id: \.self) { Text($0.rawValue) }
-//                    }
-//                    Picker("Weight Goal", selection: $selectedGoal) {
-//                        ForEach(WeightGoal.allCases, id: \.self) { Text($0.rawValue) }
-//                    }
-//                }
-//                
-//                Section("Calorie Info") {
-//                    if let profile = profiles.first {
-//                        Text("Daily Calorie Target: \(Int(profile.dailyCalorieTarget)) kcal")
-//                    }
-//                }
-//                
-//                Button("Update Profile") {
-//                    saveProfile()
-//                }
-//                .buttonStyle(.borderedProminent)
-//            }
-//            .navigationTitle("Profile")
-//            .onAppear(perform: loadProfile)
-//        }
-//    }
-//    
-//    private func loadProfile() {
-//        guard let profile = profiles.first else { return }
-//        age = "\(profile.age)"
-//        weight = "\(profile.weight)"
-//        height = "\(profile.height)"
-//        selectedGender = profile.gender
-//        selectedActivity = profile.activityLevel
-//        selectedGoal = profile.goal
-//    }
-//    
-//    private func saveProfile() {
-//        guard let ageInt = Int(age),
-//              let weightDouble = Double(weight),
-//              let heightInt = Int(height),
-//              let profile = profiles.first else { return }
-//        
-//        profile.age = ageInt
-//        profile.weight = weightDouble
-//        profile.height = heightInt
-//        profile.gender = selectedGender
-//        profile.activityLevel = selectedActivity
-//        profile.goal = selectedGoal
-//        
-//        try? context.save()
-//    }
-//}
+
 import SwiftUI
 import SwiftData
 
@@ -99,7 +23,6 @@ struct ProfileView: View {
     @State private var showingSuccessAlert = false
     @State private var isUpdating = false
     
-    // Real-time calculated profile for preview
     private var previewProfile: UserProfile? {
         guard let ageInt = Int(age),
               let weightDouble = Double(weight),
@@ -122,19 +45,11 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header with gradient
+                    
                     headerSection
-                    
-                    // Personal Info Card
                     personalInfoCard
-                    
-                    // Activity & Goal Card
                     activityGoalCard
-                    
-                    // Real-time Calorie & Macro Display
                     nutritionDisplayCard
-                    
-                    // Update Button
                     updateButton
                     
                     Spacer(minLength: 100)
@@ -143,7 +58,6 @@ struct ProfileView: View {
                 .padding(.top, 10)
             }
             .background(Color.appBackground)
-         //   .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.large)
             .onAppear(perform: loadProfile)
             .alert("Profile Updated!", isPresented: $showingSuccessAlert) {
@@ -255,7 +169,7 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 16) {
-                // Activity Level
+      
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "figure.run")
@@ -280,7 +194,6 @@ struct ProfileView: View {
                     }
                 }
                 
-                // Weight Goal
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "chart.line.uptrend.xyaxis")
@@ -326,7 +239,6 @@ struct ProfileView: View {
             
             if let preview = previewProfile {
                 VStack(spacing: 20) {
-                    // Main Calorie Display
                     VStack(spacing: 8) {
                         Text("\(Int(preview.dailyCalorieTarget))")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
@@ -344,7 +256,7 @@ struct ProfileView: View {
                             .foregroundColor(.secondaryText)
                     }
                     
-                    // BMR Display
+
                     VStack(spacing: 4) {
                         Text("Base Metabolic Rate")
                             .font(.caption)
@@ -358,7 +270,7 @@ struct ProfileView: View {
                     Divider()
                         .padding(.vertical, 4)
                     
-                    // Macro Targets
+
                     VStack(spacing: 12) {
                         Text("Macronutrient Targets")
                             .font(.subheadline)
@@ -426,8 +338,6 @@ struct ProfileView: View {
                         .scaleEffect(0.8)
                         .foregroundColor(.white)
                 } else {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18))
                 }
                 
                 Text(isUpdating ? "Updating..." : "Save Profile")
@@ -475,7 +385,7 @@ struct ProfileView: View {
     }
     
     private func updateProfileIfValid() {
-        // Auto-update profile when selections change (real-time)
+       
         guard isProfileValid, let profile = profiles.first else { return }
         
         profile.gender = selectedGender
@@ -493,7 +403,7 @@ struct ProfileView: View {
         
         isUpdating = true
         
-        // Simulate a brief update delay for better UX
+       
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             profile.age = ageInt
             profile.weight = weightDouble

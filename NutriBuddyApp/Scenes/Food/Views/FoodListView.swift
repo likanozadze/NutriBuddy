@@ -22,8 +22,8 @@ struct FoodListView: View {
                     DailySummaryView(viewModel: progressViewModel)
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
-                        selectedDate: foodListViewModel.selectedDate,
-                        onDelete: foodListViewModel.deleteFoods
+                        selectedDate: foodListViewModel.selectedDate
+                       // onDelete: foodListViewModel.deleteFoods
                     )
                 }
             }

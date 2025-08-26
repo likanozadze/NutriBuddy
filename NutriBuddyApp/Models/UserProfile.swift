@@ -138,12 +138,12 @@ final class UserProfile {
     
     var carbTarget: Double {
         let carbCalories = dailyCalorieTarget * carbPercentage
-        return carbCalories / 4.0 // 4 kcal per gram of carbs
+        return carbCalories / 4.0
     }
     
     var fatTarget: Double {
         let fatCalories = dailyCalorieTarget * fatPercentage
-        return fatCalories / 9.0 // 9 kcal per gram of fat
+        return fatCalories / 9.0
     }
 
     var fiberTarget: Double {
