@@ -18,7 +18,7 @@ struct MacroProgressCard: View {
             MacroDetailsView(macro: macro)
 Spacer(minLength: 0)
         }
-        .padding(14)
+        
         .frame(maxWidth: .infinity)
         .frame(height: 120)
         .background(macroCardBackground)
@@ -53,7 +53,7 @@ struct MacroHeaderView: View {
                 .foregroundColor(macro.color)
         }
     }
-
+    
     
     private func iconName(for title: String) -> String {
         switch title.lowercased() {
@@ -65,10 +65,7 @@ struct MacroHeaderView: View {
         default: return "circle.fill"
         }
     }
-
-    }
-
-
+}
 struct MacroCircularProgress: View {
     let macro: MacroProgress
     

@@ -15,14 +15,14 @@ struct FoodListSection: View {
     @State private var showingAddFood = false
     
     var body: some View {
-        VStack(spacing: 0) {
-          
+        VStack(spacing: 12) {
+            
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "fork.knife")
                         .foregroundColor(.customOrange)
                         .font(.title3)
-                        .frame(width: 32, height: 32)
+                        .frame(width: 28, height: 28)
                         .background(Circle().fill(Color.customOrange.opacity(0.1)))
                     
                     Text("Food log")
@@ -30,15 +30,12 @@ struct FoodListSection: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.primaryText)
                 }
-                
                 Spacer()
                 
                 Text("\(foods.count) items")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
             
             if foods.isEmpty {
                 EmptyFoodLogView(onAddFood: {
@@ -46,45 +43,42 @@ struct FoodListSection: View {
                 })
                 .padding(.vertical, 32)
             } else {
-                List {
-                    ForEach(foods, id: \.id) { food in
-                        HStack {
-                            FoodRowView(food: food)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                VStack(spacing: 12) {
+                    List {
+                        ForEach(foods, id: \.id) { food in
+                            HStack {
+                                FoodRowView(food: food)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .background(Color(.systemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(.systemBackground))
+                        .onDelete(perform: onDelete)
+                    }
+                    .listStyle(.plain)
+                    .frame(minHeight: 100, maxHeight: 300)
+                    
+                    
+                    Button(action: {
+                        showingAddFood = true
+                    }) {
+                        HStack {
+                            Text("Add Food")
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                        .foregroundColor(Color.appBackground)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.customOrange)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    .onDelete(perform: onDelete)
                 }
-                .listStyle(.plain)
-                .frame(height: 300)
-                
-               
-                Button(action: {
-                    showingAddFood = true
-                }) {
-                    HStack {
-                        Text("Add Food")
-                            .font(.system(size: 16, weight: .medium))
-                    }
-                    .foregroundColor(Color.appBackground)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.customOrange)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
             }
         }
         .background(Color(.systemGroupedBackground).opacity(0.3))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         .sheet(isPresented: $showingAddFood) {
             AddFoodView(selectedDate: selectedDate)
         }

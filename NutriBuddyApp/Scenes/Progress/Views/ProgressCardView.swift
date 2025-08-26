@@ -11,7 +11,7 @@ struct ProgressCardView: View {
     @ObservedObject var viewModel: ProgressViewModel
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 20) {
             if viewModel.hasProfile {
                 CalorieProgressCard(viewModel: viewModel.calorieProgressViewModel)
                 
@@ -20,15 +20,11 @@ struct ProgressCardView: View {
                         MacroProgressCard(macro: macro)
                     }
                 }
-                .padding(.top, 16)
             } else {
                 NoProfileCard()
-                    .padding(.vertical, 16)
             }
         }
-        .padding(.horizontal, 16)
     }
-    
     private var macroColumns: [GridItem] {
         [
             GridItem(.flexible(), spacing: 16),

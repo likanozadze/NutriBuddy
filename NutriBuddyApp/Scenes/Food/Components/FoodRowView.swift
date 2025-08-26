@@ -10,13 +10,12 @@ struct FoodRowView: View {
     let food: FoodEntry
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading) {
             Text(food.name)
                 .font(.headline)
             Text("\(food.grams.asGramString) → \(food.totalCalories.asCalorieString), \(food.totalProtein.asProteinString)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 2)
     }
 }

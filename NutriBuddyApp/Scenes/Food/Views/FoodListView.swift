@@ -16,17 +16,18 @@ struct FoodListView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 8) {
-                DateNavigator(viewModel: foodListViewModel)
-                DailySummaryView(viewModel: progressViewModel)
-                ScrollView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    DateNavigator(viewModel: foodListViewModel)
+                    DailySummaryView(viewModel: progressViewModel)
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
-                        selectedDate: foodListViewModel.selectedDate, 
+                        selectedDate: foodListViewModel.selectedDate,
                         onDelete: foodListViewModel.deleteFoods
                     )
                 }
             }
+            .padding(16)
             .navigationBarTitleDisplayMode(.inline)
             .background(Color.appBackground)
             .onAppear {
