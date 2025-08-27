@@ -13,7 +13,7 @@ struct ProfileView: View {
     @Query var profiles: [UserProfile]
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel = ProfileViewModel()
-    
+    @EnvironmentObject var manager: HealthKitManager
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -22,6 +22,7 @@ struct ProfileView: View {
                     personalInfoCard
                     activityGoalCard
                     nutritionDisplayCard
+                    healthKitDisplayCard
                     updateButton
                 }
                 .padding(.horizontal, 20)
@@ -31,6 +32,7 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 viewModel.configure(context: context, profiles: profiles)
+                viewModel.fetchSteps(from: manager)
             }
             .alert("Profile Updated!", isPresented: $viewModel.showingSuccessAlert) {
                 Button("OK") {
@@ -299,6 +301,16 @@ struct ProfileView: View {
         .padding(20)
         .cardStyle()
     }
+    
+    private var healthKitDisplayCard: some View {
+        Text("Today's Steps: \(Int(viewModel.stepsToday))")
+            .font(.title)
+            .padding()
+            .onAppear {
+                viewModel.fetchSteps(from: manager)
+            }
+    }
+
     
     // MARK: - Update Button
     private var updateButton: some View {
