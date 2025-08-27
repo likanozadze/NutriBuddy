@@ -10,9 +10,11 @@ import SwiftData
 
 @main
 struct NutriBuddyApp: App {
+    @StateObject private var healthKitManager = HealthKitManager()
     var body: some Scene {
         WindowGroup {
             MainAppView()
+                .environmentObject(healthKitManager)
         }
         .modelContainer(for: [FoodEntry.self, UserProfile.self])
     }

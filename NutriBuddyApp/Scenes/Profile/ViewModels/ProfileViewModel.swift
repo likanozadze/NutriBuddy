@@ -20,6 +20,7 @@ class ProfileViewModel: ObservableObject {
     
     @Published var showingSuccessAlert = false
     @Published var isUpdating = false
+    @Published var stepsToday: Double = 0
     
     // MARK: - Private Properties
     private var modelContext: ModelContext?
@@ -52,8 +53,8 @@ class ProfileViewModel: ObservableObject {
         }
         
         return ageInt > 0 && ageInt < 120 &&
-               weightDouble > 0 && weightDouble < 500 &&
-               heightInt > 0 && heightInt < 300
+        weightDouble > 0 && weightDouble < 500 &&
+        heightInt > 0 && heightInt < 300
     }
     
     // MARK: - Initialization
@@ -95,7 +96,7 @@ class ProfileViewModel: ObservableObject {
         
         isUpdating = true
         
-     
+        
         Task {
             try await Task.sleep(nanoseconds: 500_000_000)
             
@@ -111,7 +112,7 @@ class ProfileViewModel: ObservableObject {
                 showingSuccessAlert = true
             } catch {
                 print("Error saving profile: \(error)")
-                // You could add error handling here with @Published var errorMessage
+                
             }
             
             isUpdating = false
@@ -134,4 +135,16 @@ class ProfileViewModel: ObservableObject {
     func dismissSuccessAlert() {
         showingSuccessAlert = false
     }
+    
+    func fetchSteps(from healthManager: HealthKitManager) {
+          print("ProfileViewModel: fetchSteps called")
+          healthManager.fetchTodaySteps { [weak self] steps in
+              print("ProfileViewModel: received steps: \(steps)")
+              DispatchQueue.main.async {
+                  self?.stepsToday = steps
+                  print("ProfileViewModel: stepsToday updated to: \(self?.stepsToday ?? 0)")
+              }
+          }
+      }
+      
 }
