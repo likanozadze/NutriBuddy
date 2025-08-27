@@ -18,7 +18,7 @@ class OnboardingViewModel: ObservableObject {
     @Published var selectedActivity = ActivityLevel.moderate
     @Published var selectedGoal = WeightGoal.maintain
     
-    // Validation properties
+
     var isValidAge: Bool {
         guard let ageInt = Int(age) else { return false }
         return ageInt >= 13 && ageInt <= 120
@@ -45,7 +45,7 @@ class OnboardingViewModel: ObservableObject {
         }
     }
     
-    // Business logic
+
     func calculateDailyCalories() -> Int? {
         guard let ageInt = Int(age),
               let weightDouble = Double(weight),
@@ -89,7 +89,7 @@ class OnboardingViewModel: ObservableObject {
         }
     }
     
-    // Step navigation
+
     func nextStep() {
         currentStep += 1
     }
