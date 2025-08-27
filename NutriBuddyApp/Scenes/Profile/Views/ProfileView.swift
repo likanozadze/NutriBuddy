@@ -12,56 +12,30 @@ import SwiftData
 struct ProfileView: View {
     @Query var profiles: [UserProfile]
     @Environment(\.modelContext) private var context
-    
-    @State private var age: String = ""
-    @State private var weight: String = ""
-    @State private var height: String = ""
-    @State private var selectedGender: Gender = .male
-    @State private var selectedActivity: ActivityLevel = .moderate
-    @State private var selectedGoal: WeightGoal = .maintain
-    
-    @State private var showingSuccessAlert = false
-    @State private var isUpdating = false
-    
-    private var previewProfile: UserProfile? {
-        guard let ageInt = Int(age),
-              let weightDouble = Double(weight),
-              let heightInt = Int(height),
-              ageInt > 0, weightDouble > 0, heightInt > 0 else {
-            return nil
-        }
-        
-        return UserProfile(
-            age: ageInt,
-            weight: weightDouble,
-            height: heightInt,
-            gender: selectedGender,
-            activityLevel: selectedActivity,
-            goal: selectedGoal
-        )
-    }
+    @StateObject private var viewModel = ProfileViewModel()
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    
                     headerSection
                     personalInfoCard
                     activityGoalCard
                     nutritionDisplayCard
                     updateButton
-                    
-                   // Spacer(minLength: 100)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
             }
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.large)
-            .onAppear(perform: loadProfile)
-            .alert("Profile Updated!", isPresented: $showingSuccessAlert) {
-                Button("OK") { }
+            .onAppear {
+                viewModel.configure(context: context, profiles: profiles)
+            }
+            .alert("Profile Updated!", isPresented: $viewModel.showingSuccessAlert) {
+                Button("OK") {
+                    viewModel.dismissSuccessAlert()
+                }
             } message: {
                 Text("Your profile and nutrition targets have been successfully updated.")
             }
@@ -105,7 +79,7 @@ struct ProfileView: View {
             VStack(spacing: 16) {
                 CustomInputField(
                     title: "Age",
-                    value: $age,
+                    value: $viewModel.age,
                     placeholder: "Enter your age",
                     icon: "calendar",
                     keyboardType: .numberPad
@@ -113,7 +87,7 @@ struct ProfileView: View {
                 
                 CustomInputField(
                     title: "Weight (kg)",
-                    value: $weight,
+                    value: $viewModel.weight,
                     placeholder: "Enter your weight",
                     icon: "scalemass",
                     keyboardType: .decimalPad
@@ -121,7 +95,7 @@ struct ProfileView: View {
                 
                 CustomInputField(
                     title: "Height (cm)",
-                    value: $height,
+                    value: $viewModel.height,
                     placeholder: "Enter your height",
                     icon: "ruler",
                     keyboardType: .numberPad
@@ -138,15 +112,15 @@ struct ProfileView: View {
                             .fontWeight(.medium)
                     }
                     
-                    Picker("Gender", selection: $selectedGender) {
+                    Picker("Gender", selection: $viewModel.selectedGender) {
                         ForEach(Gender.allCases, id: \.self) { gender in
                             Text(gender.rawValue)
                                 .tag(gender)
                         }
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: selectedGender) { _, _ in
-                        updateProfileIfValid()
+                    .onChange(of: viewModel.selectedGender) { _, _ in
+                        viewModel.onGenderChanged()
                     }
                 }
             }
@@ -169,7 +143,6 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 16) {
-      
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "figure.run")
@@ -180,7 +153,7 @@ struct ProfileView: View {
                             .fontWeight(.medium)
                     }
                     HStack {
-                        Picker("Activity Level", selection: $selectedActivity) {
+                        Picker("Activity Level", selection: $viewModel.selectedActivity) {
                             ForEach(ActivityLevel.allCases, id: \.self) { level in
                                 Text(level.rawValue)
                                     .tag(level)
@@ -189,8 +162,8 @@ struct ProfileView: View {
                         .pickerStyle(.menu)
                         Spacer()
                     }
-                    .onChange(of: selectedActivity) { _, _ in
-                        updateProfileIfValid()
+                    .onChange(of: viewModel.selectedActivity) { _, _ in
+                        viewModel.onActivityLevelChanged()
                     }
                 }
                 
@@ -204,7 +177,7 @@ struct ProfileView: View {
                             .fontWeight(.medium)
                     }
                     HStack {
-                        Picker("Weight Goal", selection: $selectedGoal) {
+                        Picker("Weight Goal", selection: $viewModel.selectedGoal) {
                             ForEach(WeightGoal.allCases, id: \.self) { goal in
                                 Text(goal.rawValue)
                                     .tag(goal)
@@ -213,8 +186,8 @@ struct ProfileView: View {
                         .pickerStyle(.menu)
                         Spacer()
                     }
-                    .onChange(of: selectedGoal) { _, _ in
-                        updateProfileIfValid()
+                    .onChange(of: viewModel.selectedGoal) { _, _ in
+                        viewModel.onGoalChanged()
                     }
                 }
             }
@@ -237,7 +210,7 @@ struct ProfileView: View {
                 Spacer()
             }
             
-            if let preview = previewProfile {
+            if let preview = viewModel.previewProfile {
                 VStack(spacing: 20) {
                     VStack(spacing: 8) {
                         Text("\(Int(preview.dailyCalorieTarget))")
@@ -256,7 +229,6 @@ struct ProfileView: View {
                             .foregroundColor(.secondaryText)
                     }
                     
-
                     VStack(spacing: 4) {
                         Text("Base Metabolic Rate")
                             .font(.caption)
@@ -270,7 +242,6 @@ struct ProfileView: View {
                     Divider()
                         .padding(.vertical, 4)
                     
-
                     VStack(spacing: 12) {
                         Text("Macronutrient Targets")
                             .font(.subheadline)
@@ -331,16 +302,15 @@ struct ProfileView: View {
     
     // MARK: - Update Button
     private var updateButton: some View {
-        Button(action: saveProfile) {
+        Button(action: viewModel.saveProfile) {
             HStack {
-                if isUpdating {
+                if viewModel.isUpdating {
                     ProgressView()
                         .scaleEffect(0.8)
                         .foregroundColor(.white)
-                } else {
                 }
                 
-                Text(isUpdating ? "Updating..." : "Save Profile")
+                Text(viewModel.isUpdating ? "Updating..." : "Save Profile")
                     .fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)
@@ -354,73 +324,10 @@ struct ProfileView: View {
             )
             .foregroundColor(.white)
             .cornerRadius(12)
-            .disabled(isUpdating || !isProfileValid)
-            .opacity(isProfileValid ? 1.0 : 0.6)
+            .disabled(viewModel.isUpdating || !viewModel.isProfileValid)
+            .opacity(viewModel.isProfileValid ? 1.0 : 0.6)
         }
-        .animation(.easeInOut(duration: 0.2), value: isUpdating)
-    }
-    
-    // MARK: - Helper Properties
-    private var isProfileValid: Bool {
-        guard let ageInt = Int(age),
-              let weightDouble = Double(weight),
-              let heightInt = Int(height) else {
-            return false
-        }
-        
-        return ageInt > 0 && ageInt < 120 &&
-               weightDouble > 0 && weightDouble < 500 &&
-               heightInt > 0 && heightInt < 300
-    }
-    
-    // MARK: - Methods
-    private func loadProfile() {
-        guard let profile = profiles.first else { return }
-        age = "\(profile.age)"
-        weight = "\(profile.weight)"
-        height = "\(profile.height)"
-        selectedGender = profile.gender
-        selectedActivity = profile.activityLevel
-        selectedGoal = profile.goal
-    }
-    
-    private func updateProfileIfValid() {
-       
-        guard isProfileValid, let profile = profiles.first else { return }
-        
-        profile.gender = selectedGender
-        profile.activityLevel = selectedActivity
-        profile.goal = selectedGoal
-        
-        try? context.save()
-    }
-    
-    private func saveProfile() {
-        guard let ageInt = Int(age),
-              let weightDouble = Double(weight),
-              let heightInt = Int(height),
-              let profile = profiles.first else { return }
-        
-        isUpdating = true
-        
-       
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            profile.age = ageInt
-            profile.weight = weightDouble
-            profile.height = heightInt
-            profile.gender = selectedGender
-            profile.activityLevel = selectedActivity
-            profile.goal = selectedGoal
-            
-            do {
-                try context.save()
-                showingSuccessAlert = true
-            } catch {
-                print("Error saving profile: \(error)")
-            }
-            
-            isUpdating = false
-        }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isUpdating)
     }
 }
 
