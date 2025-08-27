@@ -52,7 +52,7 @@ struct ProfileView: View {
                     nutritionDisplayCard
                     updateButton
                     
-                    Spacer(minLength: 100)
+                   // Spacer(minLength: 100)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
