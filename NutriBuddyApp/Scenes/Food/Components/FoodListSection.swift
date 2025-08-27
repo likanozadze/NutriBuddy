@@ -70,7 +70,8 @@ struct FoodListSection: View {
             }
         }
         .sheet(isPresented: $showingAddFood) {
-            AddFoodView(selectedDate: selectedDate)
+           // AddFoodView(selectedDate: selectedDate)
+            AddFoodView(selectedDate: selectedDate, context: context)
         }
     }
     

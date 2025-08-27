@@ -18,7 +18,7 @@ extension Color {
     static let cardBackground = Color(UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
             ? UIColor(red: 0.15, green: 0.15, blue: 0.15, alpha: 1.0)
-            : UIColor.white // Light: White
+            : UIColor.white 
     })
     
     static let listBackground = Color(UIColor { traitCollection in

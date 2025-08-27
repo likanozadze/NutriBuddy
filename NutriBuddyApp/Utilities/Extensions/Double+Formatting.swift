@@ -13,7 +13,7 @@ extension Double {
     }
     
     var asProteinString: String {
-        String(format: "%.1f g protein", self)
+        String(format: "%.1f g", self)
     }
     
     var asGramString: String {

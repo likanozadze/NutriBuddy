@@ -11,25 +11,16 @@ import SwiftData
 struct AddFoodView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-    @State private var name = ""
-    @State private var caloriesPer100g = ""
-    @State private var proteinPer100g = ""
-    @State private var carbsPer100g = ""
-    @State private var fatPer100g = ""
-    @State private var grams = ""
-    @State private var showAdvancedOptions = false
-    @State private var fiberPer100g = ""
-    @State private var sugarPer100g = ""
     
-    let selectedDate: Date
+    @StateObject private var viewModel: AddFoodViewModel
     
-    private var isValidForm: Bool {
-        !name.isEmpty &&
-        Double(caloriesPer100g) != nil &&
-        Double(proteinPer100g) != nil &&
-        Double(grams) != nil
+    init(selectedDate: Date, context: ModelContext) {
+        self.selectedDate = selectedDate
+        self._viewModel = StateObject(wrappedValue: AddFoodViewModel(selectedDate: selectedDate, context: context))
     }
     
+    let selectedDate: Date
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -37,7 +28,7 @@ struct AddFoodView: View {
                     headerCard
                     inputCard
                     advancedOptionsToggle
-                    if showAdvancedOptions {
+                    if viewModel.showAdvancedOptions {
                         advancedMacrosCard
                     }
                     previewCard
@@ -59,10 +50,11 @@ struct AddFoodView: View {
                 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        saveFood()
+                        viewModel.saveFood()
+                        dismiss()
                     }
-                    .disabled(!isValidForm)
-                    .foregroundColor(isValidForm ? .customBlue : .secondary)
+                    .disabled(!viewModel.isValidForm)
+                    .foregroundColor(viewModel.isValidForm ? .customBlue : .secondary)
                     .fontWeight(.semibold)
                 }
             }
@@ -80,12 +72,12 @@ struct AddFoodView: View {
                         endPoint: .bottomTrailing
                     )
                 )
-            
+                
             Text("Add New Food")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryText)
-            
+                
             Text("Track your nutrition by adding food details")
                 .font(.subheadline)
                 .foregroundColor(.secondaryText)
@@ -112,14 +104,14 @@ struct AddFoodView: View {
             VStack(spacing: 12) {
                 CustomTextField(
                     title: "Food Name",
-                    text: $name,
+                    text: $viewModel.name,
                     icon: "textformat",
                     placeholder: "e.g. Chicken breast"
                 )
                 
                 CustomTextField(
                     title: "Calories per 100g",
-                    text: $caloriesPer100g,
+                    text: $viewModel.caloriesPer100g,
                     icon: "flame",
                     placeholder: "e.g. 165",
                     keyboardType: .decimalPad
@@ -127,7 +119,7 @@ struct AddFoodView: View {
                 
                 CustomTextField(
                     title: "Protein per 100g",
-                    text: $proteinPer100g,
+                    text: $viewModel.proteinPer100g,
                     icon: "bolt",
                     placeholder: "e.g. 31",
                     keyboardType: .decimalPad
@@ -135,7 +127,7 @@ struct AddFoodView: View {
                 
                 CustomTextField(
                     title: "Amount in grams",
-                    text: $grams,
+                    text: $viewModel.grams,
                     icon: "scalemass",
                     placeholder: "e.g. 150",
                     keyboardType: .decimalPad
@@ -149,22 +141,22 @@ struct AddFoodView: View {
     private var advancedOptionsToggle: some View {
         Button(action: {
             withAnimation(.easeInOut(duration: 0.3)) {
-                showAdvancedOptions.toggle()
+                viewModel.showAdvancedOptions.toggle()
             }
         }) {
             HStack {
                 Image(systemName: "chevron.right")
                     .foregroundColor(.customBlue)
-                    .rotationEffect(.degrees(showAdvancedOptions ? 90 : 0))
-                    .animation(.easeInOut(duration: 0.3), value: showAdvancedOptions)
-                
+                    .rotationEffect(.degrees(viewModel.showAdvancedOptions ? 90 : 0))
+                    .animation(.easeInOut(duration: 0.3), value: viewModel.showAdvancedOptions)
+                    
                 Text("Advanced Macros")
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.primaryText)
-                
+                    
                 Spacer()
-                
+                    
                 Text("Optional")
                     .font(.caption)
                     .foregroundColor(.secondaryText)
@@ -197,7 +189,7 @@ struct AddFoodView: View {
             VStack(spacing: 12) {
                 CustomTextField(
                     title: "Carbs per 100g",
-                    text: $carbsPer100g,
+                    text: $viewModel.carbsPer100g,
                     icon: "leaf",
                     placeholder: "e.g. 0",
                     keyboardType: .decimalPad
@@ -205,14 +197,14 @@ struct AddFoodView: View {
                 
                 CustomTextField(
                     title: "Fat per 100g",
-                    text: $fatPer100g,
+                    text: $viewModel.fatPer100g,
                     icon: "drop",
                     placeholder: "e.g. 3.6",
                     keyboardType: .decimalPad
                 )
                 CustomTextField(
                     title: "Fiber per 100g",
-                    text: $fiberPer100g,
+                    text: $viewModel.fiberPer100g,
                     icon: "scissors",
                     placeholder: "e.g. 2.5",
                     keyboardType: .decimalPad
@@ -220,7 +212,7 @@ struct AddFoodView: View {
                 
                 CustomTextField(
                     title: "Sugar per 100g",
-                    text: $sugarPer100g,
+                    text: $viewModel.sugarPer100g,
                     icon: "cube.transparent",
                     placeholder: "e.g. 4.7",
                     keyboardType: .decimalPad
@@ -228,7 +220,6 @@ struct AddFoodView: View {
             }
             
         }
-        
         .padding(20)
         .cardStyle()
         .transition(.asymmetric(
@@ -254,35 +245,35 @@ struct AddFoodView: View {
                 HStack(spacing: 20) {
                     MacroPreviewItem(
                         title: "Calories",
-                        value: calculatedCalories.asCalorieString,
+                        value: viewModel.calculatedCalories.asCalorieString,
                         icon: "flame.fill",
                         color: .customOrange
                     )
                     
                     MacroPreviewItem(
                         title: "Protein",
-                        value: calculatedProtein.asProteinString,
+                        value: viewModel.calculatedProtein.asProteinString,
                         icon: "bolt.fill",
                         color: .customGreen
                     )
                 }
                 
                 
-                if showAdvancedOptions {
-                    if calculatedCarbs > 0 || calculatedFat > 0 {
+                if viewModel.showAdvancedOptions {
+                    if viewModel.calculatedCarbs > 0 || viewModel.calculatedFat > 0 {
                         HStack(spacing: 20) {
-                            if calculatedCarbs > 0 {
+                            if viewModel.calculatedCarbs > 0 {
                                 MacroPreviewItem(
                                     title: "Carbs",
-                                    value: calculatedCarbs.asProteinString,
+                                    value: viewModel.calculatedCarbs.asProteinString,
                                     icon: "leaf.fill",
                                     color: .customBlue
                                 )
                             }
-                            if calculatedFat > 0 {
+                            if viewModel.calculatedFat > 0 {
                                 MacroPreviewItem(
                                     title: "Fat",
-                                    value: calculatedFat.asProteinString,
+                                    value: viewModel.calculatedFat.asProteinString,
                                     icon: "drop.fill",
                                     color: .purple
                                 )
@@ -290,20 +281,20 @@ struct AddFoodView: View {
                         }
                     }
                     
-                    if calculatedFiber > 0 || calculatedSugar > 0 {
+                    if viewModel.calculatedFiber > 0 || viewModel.calculatedSugar > 0 {
                         HStack(spacing: 20) {
-                            if calculatedFiber > 0 {
+                            if viewModel.calculatedFiber > 0 {
                                 MacroPreviewItem(
                                     title: "Fiber",
-                                    value: calculatedFiber.asProteinString,
+                                    value: viewModel.calculatedFiber.asProteinString,
                                     icon: "scissors",
                                     color: .brown
                                 )
                             }
-                            if calculatedSugar > 0 {
+                            if viewModel.calculatedSugar > 0 {
                                 MacroPreviewItem(
                                     title: "Sugar",
-                                    value: calculatedSugar.asProteinString,
+                                    value: viewModel.calculatedSugar.asProteinString,
                                     icon: "cube.fill",
                                     color: .pink
                                 )
@@ -316,79 +307,8 @@ struct AddFoodView: View {
         .padding(20)
         .cardStyle()
     }
-    
-    
-    // MARK: - Computed Properties
-    private var calculatedCalories: Double {
-        guard let cal = Double(caloriesPer100g), cal > 0,
-              let gr = Double(grams), gr > 0 else { return 0 }
-        return (cal * gr) / 100
-    }
-    
-    private var calculatedProtein: Double {
-        guard let prot = Double(proteinPer100g), prot >= 0,
-              let gr = Double(grams), gr > 0 else { return 0 }
-        return (prot * gr) / 100
-    }
-    
-    private var calculatedCarbs: Double {
-        guard let carbs = Double(carbsPer100g), carbs >= 0,
-              let gr = Double(grams), gr > 0 else { return 0 }
-        return (carbs * gr) / 100
-    }
-    
-    private var calculatedFat: Double {
-        guard let fat = Double(fatPer100g), fat >= 0,
-              let gr = Double(grams), gr > 0 else { return 0 }
-        return (fat * gr) / 100
-    }
-    private var calculatedFiber: Double {
-        guard let fiber = Double(fiberPer100g), fiber >= 0,
-              let gr = Double(grams), gr > 0 else { return 0 }
-        return (fiber * gr) / 100
-    }
-    
-    private var calculatedSugar: Double {
-        guard let sugar = Double(sugarPer100g), sugar >= 0,
-              let gr = Double(grams), gr > 0 else { return 0 }
-        return (sugar * gr) / 100
-    }
-    
-    
-  
-    private func saveFood() {
-        guard let calories = Double(caloriesPer100g),
-              let protein = Double(proteinPer100g),
-              let weight = Double(grams) else { return }
-        
-    
-        let carbs = Double(carbsPer100g) ?? 0
-        let fat = Double(fatPer100g) ?? 0
-        let fiber = Double(fiberPer100g) ?? 0
-        let sugar = Double(sugarPer100g) ?? 0
-        
-        let food = FoodEntry(
-            name: name,
-            caloriesPer100g: calories,
-            proteinPer100g: protein,
-            carbsPer100g: carbs,
-            fatPer100g: fat,
-            fiberPer100g: fiber,
-            sugarPer100g: sugar,
-            grams: weight,
-            date: selectedDate
-        )
-        
-        context.insert(food)
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save food: \(error)")
-        }
-        
-        dismiss()
-    }
 }
+
 struct MacroPreviewItem: View {
     let title: String
     let value: String
@@ -400,12 +320,12 @@ struct MacroPreviewItem: View {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(color)
-            
+                
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryText)
-            
+                
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondaryText)
@@ -417,4 +337,3 @@ struct MacroPreviewItem: View {
         .cornerRadius(8)
     }
 }
-
