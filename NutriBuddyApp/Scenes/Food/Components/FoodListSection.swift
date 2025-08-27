@@ -113,7 +113,6 @@
 //}
 
 
-
 import SwiftUI
 import SwiftData
 
@@ -124,8 +123,8 @@ struct FoodListSection: View {
     @State private var showingAddFood = false
     
     var body: some View {
-        VStack(spacing: 12) {
-            
+        VStack(spacing: 16) {
+           
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "fork.knife")
@@ -152,61 +151,102 @@ struct FoodListSection: View {
                 })
                 .padding(.vertical, 32)
             } else {
-                VStack(spacing: 12) {
-                    List {
-                        ForEach(foods, id: \.id) { food in
-                            HStack {
-                                FoodRowView(food: food)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .background(Color(.systemBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .onDelete(perform: deleteFoods)
-                    }
-                    .listStyle(.plain)
-                    .frame(minHeight: 100, maxHeight: 300)
-                    
-                    Button(action: {
-                        showingAddFood = true
-                    }) {
-                        HStack {
-                            Text("Add Food")
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                        .foregroundColor(Color.appBackground)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.customOrange)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                LazyVStack(spacing: 8) {
+                    ForEach(foods, id: \.id) { food in
+                        FoodItemCard(food: food, onDelete: {
+                            deleteFoodItem(food)
+                        })
                     }
                 }
+                Button(action: {
+                    showingAddFood = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .medium))
+                        Text("Add Food")
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                    .foregroundColor(Color.appBackground)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.customOrange)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
         }
-        .background(Color(.systemGroupedBackground).opacity(0.3))
         .sheet(isPresented: $showingAddFood) {
             AddFoodView(selectedDate: selectedDate)
         }
     }
     
-    private func deleteFoods(at offsets: IndexSet) {
-        let sortedOffsets = offsets.sorted(by: >)
-        
-        withAnimation {
-            for offset in sortedOffsets {
-                guard offset >= 0 && offset < foods.count else { continue }
-                let foodToDelete = foods[offset]
-                context.delete(foodToDelete)
-            }
+    private func deleteFoodItem(_ food: FoodEntry) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            context.delete(food)
             
             do {
                 try context.save()
             } catch {
-                print("Failed to delete foods: \(error)")
+                print("Failed to delete food: \(error)")
             }
+        }
+    }
+}
+
+struct FoodItemCard: View {
+    let food: FoodEntry
+    let onDelete: () -> Void
+    @State private var showingDeleteConfirmation = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        HStack(spacing: 12) {
+
+            Image(systemName: "fork.knife.circle.fill")
+                .font(.title2)
+                .foregroundColor(.customOrange.opacity(0.8))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(food.name)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primaryText)
+                    .lineLimit(1)
+                
+                Text("\(food.grams.asGramString) → \(food.totalCalories.asCalorieString), \(food.totalProtein.asProteinString)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+
+            Button(action: {
+                showingDeleteConfirmation = true
+            }) {
+                Image(systemName: "trash")
+                    .font(.system(size: 16))
+                    .foregroundColor(.red.opacity(0.8))
+                    .frame(width: 32, height: 32)
+                    .background(Color.red.opacity(colorScheme == .dark ? 0.2 : 0.1))
+                    .clipShape(Circle())
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
+        )
+        .confirmationDialog("Delete Food Item", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete \(food.name)?")
         }
     }
 }
@@ -219,21 +259,26 @@ struct EmptyFoodLogView: View {
             Button(action: {
                 onAddFood()
             }) {
-                Image(systemName: "plus.circle")
-                    .font(.system(size: 48))
-                    .foregroundColor(.customOrange.opacity(0.6))
+                VStack(spacing: 12) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.customOrange.opacity(0.6))
+                    
+                    VStack(spacing: 4) {
+                        Text("No food logged yet")
+                            .font(.headline)
+                            .foregroundColor(.primaryText)
+                        
+                        Text("Tap here to start tracking your meals")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
             }
             .buttonStyle(.plain)
-            
-            VStack(spacing: 4) {
-                Text("No food logged yet")
-                    .font(.headline)
-                    .foregroundColor(.primaryText)
-                
-                Text("Tap the plus circle to start tracking")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
     }
 }

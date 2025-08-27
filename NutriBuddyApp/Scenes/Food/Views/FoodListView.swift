@@ -4,6 +4,7 @@
 //
 //  Created by Lika Nozadze on 8/23/25.
 
+
 import SwiftUI
 import SwiftData
 
@@ -18,25 +19,68 @@ struct FoodListView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    DateNavigator(viewModel: foodListViewModel)
                     DailySummaryView(viewModel: progressViewModel)
+                    
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
                         selectedDate: foodListViewModel.selectedDate
-                       // onDelete: foodListViewModel.deleteFoods
                     )
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
             }
             .scrollIndicators(.hidden)
-            .padding(16)
-            .navigationBarTitleDisplayMode(.inline)
             .background(Color.appBackground)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Button {
+                            foodListViewModel.navigateDate(by: -1)
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundColor(.primary)
+                        }
+                        
+                        Text(dateText)
+                            .font(.headline)
+                            .frame(minWidth: 120)
+                            .multilineTextAlignment(.center)
+                        
+                        Button {
+                            foodListViewModel.navigateDate(by: 1)
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.title3)
+                                .foregroundColor(.primary)
+                        }
+                    }
+                }
+            }
             .onAppear {
                 setupViewModels()
             }
             .onChange(of: allFoods) { _, _ in setupViewModels() }
             .onChange(of: profiles) { _, _ in setupViewModels() }
             .onChange(of: foodListViewModel.selectedDate) { _, _ in updateProgressData() }
+        }
+    }
+    
+    private var dateText: String {
+        let calendar = Calendar.current
+        let selectedDate = foodListViewModel.selectedDate
+        
+        if calendar.isDateInToday(selectedDate) {
+            return "Today"
+        } else if calendar.isDateInTomorrow(selectedDate) {
+            return "Tomorrow"
+        } else if calendar.isDateInYesterday(selectedDate) {
+            return "Yesterday"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d, yyyy"
+            return formatter.string(from: selectedDate)
         }
     }
     

@@ -417,3 +417,4 @@ struct MacroPreviewItem: View {
         .cornerRadius(8)
     }
 }
+
