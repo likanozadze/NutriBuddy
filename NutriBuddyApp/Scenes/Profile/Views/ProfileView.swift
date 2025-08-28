@@ -13,7 +13,6 @@ struct ProfileView: View {
     @Query var profiles: [UserProfile]
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel = ProfileViewModel()
-    @EnvironmentObject var manager: HealthKitManager
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -22,17 +21,18 @@ struct ProfileView: View {
                     personalInfoCard
                     activityGoalCard
                     nutritionDisplayCard
-                    healthKitDisplayCard
                     updateButton
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
             }
+            .hideKeyboardOnTap()
+
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 viewModel.configure(context: context, profiles: profiles)
-                viewModel.fetchSteps(from: manager)
+                
             }
             .alert("Profile Updated!", isPresented: $viewModel.showingSuccessAlert) {
                 Button("OK") {
@@ -79,31 +79,34 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 16) {
-                CustomInputField(
+                CustomTextField(
                     title: "Age",
-                    value: $viewModel.age,
-                    placeholder: "Enter your age",
+                    text: $viewModel.age,
                     icon: "calendar",
-                    keyboardType: .numberPad
+                    placeholder: "Enter your age",
+                    keyboardType: .numberPad,
+                    compact: true
                 )
-                
-                CustomInputField(
+
+                CustomTextField(
                     title: "Weight (kg)",
-                    value: $viewModel.weight,
-                    placeholder: "Enter your weight",
+                    text: $viewModel.weight,
                     icon: "scalemass",
-                    keyboardType: .decimalPad
+                    placeholder: "Enter your weight",
+                    keyboardType: .decimalPad,
+                    compact: true
                 )
-                
-                CustomInputField(
+
+                CustomTextField(
                     title: "Height (cm)",
-                    value: $viewModel.height,
-                    placeholder: "Enter your height",
+                    text: $viewModel.height,
                     icon: "ruler",
-                    keyboardType: .numberPad
+                    placeholder: "Enter your height",
+                    keyboardType: .numberPad,
+                    compact: true
                 )
-                
-                // Gender Picker
+
+
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "person.2")
@@ -201,7 +204,7 @@ struct ProfileView: View {
     // MARK: - Nutrition Display Card
     private var nutritionDisplayCard: some View {
         VStack(spacing: 20) {
-            // Header
+
             HStack {
                 Image(systemName: "flame.fill")
                     .foregroundColor(.customOrange)
@@ -302,16 +305,7 @@ struct ProfileView: View {
         .cardStyle()
     }
     
-    private var healthKitDisplayCard: some View {
-        Text("Today's Steps: \(Int(viewModel.stepsToday))")
-            .font(.title)
-            .padding()
-            .onAppear {
-                viewModel.fetchSteps(from: manager)
-            }
-    }
 
-    
     // MARK: - Update Button
     private var updateButton: some View {
         Button(action: viewModel.saveProfile) {
@@ -341,69 +335,49 @@ struct ProfileView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.isUpdating)
     }
-}
-
-// MARK: - Custom Input Field Component
-struct CustomInputField: View {
-    let title: String
-    @Binding var value: String
-    let placeholder: String
-    let icon: String
-    let keyboardType: UIKeyboardType
     
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(.customBlue)
-                    .font(.system(size: 16))
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+    // MARK: - Macro Card Component
+    struct MacroCard: View {
+        let title: String
+        let value: Int
+        let unit: String
+        let color: Color
+        let icon: String
+        
+        var body: some View {
+            VStack(spacing: 8) {
+                HStack {
+                    Image(systemName: icon)
+                        .foregroundColor(color)
+                        .font(.system(size: 14))
+                    Text(title)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondaryText)
+                    Spacer()
+                }
+                
+                HStack {
+                    Text("\(value)")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primaryText)
+                    Text(unit)
+                        .font(.caption)
+                        .foregroundColor(.secondaryText)
+                    Spacer()
+                }
             }
-            
-            TextField(placeholder, text: $value)
-                .keyboardType(keyboardType)
-                .textFieldStyle(.roundedBorder)
-                .font(.body)
+            .padding(12)
+            .background(Color.listBackground)
+            .cornerRadius(8)
         }
     }
 }
-
-// MARK: - Macro Card Component
-struct MacroCard: View {
-    let title: String
-    let value: Int
-    let unit: String
-    let color: Color
-    let icon: String
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .font(.system(size: 14))
-                Text(title)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondaryText)
-                Spacer()
-            }
-            
-            HStack {
-                Text("\(value)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primaryText)
-                Text(unit)
-                    .font(.caption)
-                    .foregroundColor(.secondaryText)
-                Spacer()
-            }
+extension View {
+    func hideKeyboardOnTap() -> some View {
+        self.onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
-        .padding(12)
-        .background(Color.listBackground)
-        .cornerRadius(8)
     }
 }

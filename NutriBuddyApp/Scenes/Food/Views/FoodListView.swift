@@ -14,12 +14,23 @@ struct FoodListView: View {
     @Environment(\.modelContext) private var context
     @State private var foodListViewModel = FoodListViewModel()
     @State private var progressViewModel = ProgressViewModel()
+    @StateObject private var healthKitManager = HealthKitManager()
+    
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     DailySummaryView(viewModel: progressViewModel)
+                    StepProgressRing(
+                        steps: progressViewModel.stepsToday,
+                        goal: 10000,
+                        ringColor: .customBlue
+                    )
+                    .padding(12)
+                    .background(Color.listBackground.opacity(0.5))
+                    .cornerRadius(12)
+                    
                     
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
@@ -99,5 +110,8 @@ struct FoodListView: View {
             foods: dailyFoods,
             profile: foodListViewModel.currentProfile
         )
+        healthKitManager.fetchTodaySteps { steps in
+            progressViewModel.stepsToday = Int(steps)
+        }
     }
 }

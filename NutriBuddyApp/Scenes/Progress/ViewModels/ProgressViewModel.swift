@@ -12,7 +12,8 @@ class ProgressViewModel: ObservableObject {
     @Published var calorieProgressViewModel = CalorieProgressViewModel()
     @Published var macroProgressViewModel = MacroProgressViewModel()
     @Published private(set) var hasProfile = false
-    
+   @Published var stepsToday: Int = 0
+
     func updateData(foods: [FoodEntry], profile: UserProfile?) {
         guard let profile = profile else {
             hasProfile = false
@@ -67,4 +68,5 @@ class ProgressViewModel: ObservableObject {
             MacroProgress(title: "Fiber", current: totalFiber, target: profile.fiberTarget, unit: "g", color: .blue),
           ]
     }
+
 }

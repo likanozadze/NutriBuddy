@@ -95,10 +95,6 @@ struct FoodItemCard: View {
     var body: some View {
         HStack(spacing: 12) {
             
-            Image(systemName: "fork.knife.circle.fill")
-                .font(.title2)
-                .foregroundColor(.customOrange.opacity(0.8))
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text(food.name)
                     .font(.headline)
