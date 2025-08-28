@@ -5,7 +5,6 @@
 //  Created by Lika Nozadze on 8/24/25.
 //
 
-
 import SwiftUI
 import SwiftData
 
@@ -70,7 +69,6 @@ struct FoodListSection: View {
             }
         }
         .sheet(isPresented: $showingAddFood) {
-           // AddFoodView(selectedDate: selectedDate)
             AddFoodView(selectedDate: selectedDate, context: context)
         }
     }
@@ -96,11 +94,11 @@ struct FoodItemCard: View {
     
     var body: some View {
         HStack(spacing: 12) {
-
+            
             Image(systemName: "fork.knife.circle.fill")
                 .font(.title2)
                 .foregroundColor(.customOrange.opacity(0.8))
-
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(food.name)
                     .font(.headline)
@@ -108,14 +106,14 @@ struct FoodItemCard: View {
                     .foregroundColor(.primaryText)
                     .lineLimit(1)
                 
-                Text("\(food.grams.asGramString) → \(food.totalCalories.asCalorieString), \(food.totalProtein.asProteinString)")
+                Text(amountDisplayText)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
             
             Spacer()
-
+            
             Button(action: {
                 showingDeleteConfirmation = true
             }) {
@@ -140,6 +138,16 @@ struct FoodItemCard: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Are you sure you want to delete \(food.name)?")
+        }
+    }
+    
+    private var amountDisplayText: String {
+        if food.isServingMode {
+            let servingCount = food.servingsCount
+            let servingText = servingCount == 1 ? "serving" : "servings"
+            return "\(servingCount.clean) \(servingText) • \(food.totalCalories.asCalorieString) • \(food.totalProtein.asProteinString)"
+        } else {
+            return "\(food.grams.asGramString) • \(food.totalCalories.asCalorieString) • \(food.totalProtein.asProteinString)"
         }
     }
 }
@@ -173,5 +181,11 @@ struct EmptyFoodLogView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
+    }
+}
+
+extension Double {
+    var clean: String {
+        return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
     }
 }

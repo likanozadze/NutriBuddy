@@ -18,9 +18,9 @@ struct AddFoodView: View {
         self.selectedDate = selectedDate
         self._viewModel = StateObject(wrappedValue: AddFoodViewModel(selectedDate: selectedDate, context: context))
     }
-    
-    let selectedDate: Date
 
+    let selectedDate: Date
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -72,12 +72,12 @@ struct AddFoodView: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                
+            
             Text("Add New Food")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryText)
-                
+            
             Text("Track your nutrition by adding food details")
                 .font(.subheadline)
                 .foregroundColor(.secondaryText)
@@ -109,33 +109,187 @@ struct AddFoodView: View {
                     placeholder: "e.g. Chicken breast"
                 )
                 
-                CustomTextField(
-                    title: "Calories per 100g",
-                    text: $viewModel.caloriesPer100g,
-                    icon: "flame",
-                    placeholder: "e.g. 165",
-                    keyboardType: .decimalPad
-                )
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("AMOUNT")
+                        .font(.caption)
+                        .foregroundColor(.secondaryText)
+                        .textCase(.uppercase)
+                    
+                    HStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: viewModel.inputMode.icon)
+                                .foregroundColor(.customBlue)
+                                .font(.title3)
+                            
+                            if viewModel.inputMode == .grams {
+                                TextField("e.g. 150g", text: $viewModel.grams)
+                                    .keyboardType(.decimalPad)
+                                    .font(.body)
+                                    .foregroundColor(.primaryText)
+                            } else {
+                                TextField("e.g. 1 serving", text: $viewModel.servingAmount)
+                                    .keyboardType(.decimalPad)
+                                    .font(.body)
+                                    .foregroundColor(.primaryText)
+                            }
+                        }
+                        .padding(.leading, 16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        
+                        Menu {
+                            Button(action: { viewModel.inputMode = .grams }) {
+                                HStack {
+                                    Text("grams")
+                                    if viewModel.inputMode == .grams {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button(action: { viewModel.inputMode = .servings }) {
+                                HStack {
+                                    Text("servings")
+                                    if viewModel.inputMode == .servings {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(viewModel.inputMode.displayName.lowercased())
+                                    .foregroundColor(.customBlue)
+                                Image(systemName: "chevron.down")
+                                    .foregroundColor(.customBlue)
+                                    .font(.caption)
+                            }
+                            .padding(.trailing, 16)
+                        }
+                    }
+                    .frame(height: 44)
+                    .background(Color.listBackground.opacity(0.5))
+                    .cornerRadius(8)
+                }
                 
-                CustomTextField(
-                    title: "Protein per 100g",
-                    text: $viewModel.proteinPer100g,
-                    icon: "bolt",
-                    placeholder: "e.g. 31",
-                    keyboardType: .decimalPad
-                )
-                
-                CustomTextField(
-                    title: "Amount in grams",
-                    text: $viewModel.grams,
-                    icon: "scalemass",
-                    placeholder: "e.g. 150",
-                    keyboardType: .decimalPad
-                )
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(viewModel.inputMode == .servings ? "CALORIES" : "CALORIES PER 100G")
+                            .font(.caption2)
+                            .foregroundColor(.secondaryText)
+                            .textCase(.uppercase)
+                        
+                        HStack {
+                            Image(systemName: "flame")
+                                .foregroundColor(.customOrange)
+                                .font(.body)
+                            
+                            if viewModel.inputMode == .servings {
+                                TextField("70", text: $viewModel.servingCalories)
+                                    .keyboardType(.decimalPad)
+                                    .font(.body)
+                                    .foregroundColor(.primaryText)
+                            } else {
+                                TextField("165", text: $viewModel.caloriesPer100g)
+                                    .keyboardType(.decimalPad)
+                                    .font(.body)
+                                    .foregroundColor(.primaryText)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .frame(height: 40)
+                        .background(Color.listBackground.opacity(0.5))
+                        .cornerRadius(8)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(viewModel.inputMode == .servings ? "PROTEIN (G)" : "PROTEIN PER 100G")
+                            .font(.caption2)
+                            .foregroundColor(.secondaryText)
+                            .textCase(.uppercase)
+                        
+                        HStack {
+                            Image(systemName: "bolt")
+                                .foregroundColor(.customGreen)
+                                .font(.body)
+                            
+                            if viewModel.inputMode == .servings {
+                                TextField("6", text: $viewModel.servingProtein)
+                                    .keyboardType(.decimalPad)
+                                    .font(.body)
+                                    .foregroundColor(.primaryText)
+                            } else {
+                                TextField("31", text: $viewModel.proteinPer100g)
+                                    .keyboardType(.decimalPad)
+                                    .font(.body)
+                                    .foregroundColor(.primaryText)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .frame(height: 40)
+                        .background(Color.listBackground.opacity(0.5))
+                        .cornerRadius(8)
+                    }
+                }
             }
         }
         .padding(20)
         .cardStyle()
+    }
+    
+    private var servingInputFields: some View {
+        VStack(spacing: 12) {
+            CustomTextField(
+                title: "Number of Servings",
+                text: $viewModel.servingAmount,
+                icon: "number.circle",
+                placeholder: "e.g. 1",
+                keyboardType: .decimalPad
+            )
+            
+            CustomTextField(
+                title: "Calories per Serving",
+                text: $viewModel.servingCalories,
+                icon: "flame",
+                placeholder: "e.g. 70",
+                keyboardType: .decimalPad
+            )
+            
+            CustomTextField(
+                title: "Protein per Serving",
+                text: $viewModel.servingProtein,
+                icon: "bolt",
+                placeholder: "e.g. 6",
+                keyboardType: .decimalPad
+            )
+        }
+    }
+    
+    private var gramsInputFields: some View {
+        VStack(spacing: 12) {
+            CustomTextField(
+                title: "Calories per 100g",
+                text: $viewModel.caloriesPer100g,
+                icon: "flame",
+                placeholder: "e.g. 165",
+                keyboardType: .decimalPad
+            )
+            
+            CustomTextField(
+                title: "Protein per 100g",
+                text: $viewModel.proteinPer100g,
+                icon: "bolt",
+                placeholder: "e.g. 31",
+                keyboardType: .decimalPad
+            )
+            
+            CustomTextField(
+                title: "Amount in grams",
+                text: $viewModel.grams,
+                icon: "scalemass",
+                placeholder: "e.g. 150",
+                keyboardType: .decimalPad
+            )
+        }
     }
     
     private var advancedOptionsToggle: some View {
@@ -149,14 +303,14 @@ struct AddFoodView: View {
                     .foregroundColor(.customBlue)
                     .rotationEffect(.degrees(viewModel.showAdvancedOptions ? 90 : 0))
                     .animation(.easeInOut(duration: 0.3), value: viewModel.showAdvancedOptions)
-                    
+                
                 Text("Advanced Macros")
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.primaryText)
-                    
+                
                 Spacer()
-                    
+                
                 Text("Optional")
                     .font(.caption)
                     .foregroundColor(.secondaryText)
@@ -187,38 +341,73 @@ struct AddFoodView: View {
             }
             
             VStack(spacing: 12) {
-                CustomTextField(
-                    title: "Carbs per 100g",
-                    text: $viewModel.carbsPer100g,
-                    icon: "leaf",
-                    placeholder: "e.g. 0",
-                    keyboardType: .decimalPad
-                )
                 
-                CustomTextField(
-                    title: "Fat per 100g",
-                    text: $viewModel.fatPer100g,
-                    icon: "drop",
-                    placeholder: "e.g. 3.6",
-                    keyboardType: .decimalPad
-                )
-                CustomTextField(
-                    title: "Fiber per 100g",
-                    text: $viewModel.fiberPer100g,
-                    icon: "scissors",
-                    placeholder: "e.g. 2.5",
-                    keyboardType: .decimalPad
-                )
-                
-                CustomTextField(
-                    title: "Sugar per 100g",
-                    text: $viewModel.sugarPer100g,
-                    icon: "cube.transparent",
-                    placeholder: "e.g. 4.7",
-                    keyboardType: .decimalPad
-                )
+                if viewModel.inputMode == .servings {
+                    HStack(spacing: 12) {
+                        CompactTextField(
+                            title: "CARBS/SERVING",
+                            text: $viewModel.servingCarbs,
+                            icon: "leaf",
+                            placeholder: "0.5"
+                        )
+                        
+                        CompactTextField(
+                            title: "FAT/SERVING",
+                            text: $viewModel.servingFat,
+                            icon: "drop",
+                            placeholder: "5"
+                        )
+                    }
+                    
+                    HStack(spacing: 12) {
+                        CompactTextField(
+                            title: "FIBER/SERVING",
+                            text: $viewModel.servingFiber,
+                            icon: "scissors",
+                            placeholder: "0"
+                        )
+                        
+                        CompactTextField(
+                            title: "SUGAR/SERVING",
+                            text: $viewModel.servingSugar,
+                            icon: "cube.transparent",
+                            placeholder: "0.4"
+                        )
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        CompactTextField(
+                            title: "CARBS/100G",
+                            text: $viewModel.carbsPer100g,
+                            icon: "leaf",
+                            placeholder: "0"
+                        )
+                        
+                        CompactTextField(
+                            title: "FAT/100G",
+                            text: $viewModel.fatPer100g,
+                            icon: "drop",
+                            placeholder: "3.6"
+                        )
+                    }
+                    
+                    HStack(spacing: 12) {
+                        CompactTextField(
+                            title: "FIBER/100G",
+                            text: $viewModel.fiberPer100g,
+                            icon: "scissors",
+                            placeholder: "2.5"
+                        )
+                        
+                        CompactTextField(
+                            title: "SUGAR/100G",
+                            text: $viewModel.sugarPer100g,
+                            icon: "cube.transparent",
+                            placeholder: "4.7"
+                        )
+                    }
+                }
             }
-            
         }
         .padding(20)
         .cardStyle()
@@ -247,17 +436,16 @@ struct AddFoodView: View {
                         title: "Calories",
                         value: viewModel.calculatedCalories.asCalorieString,
                         icon: "flame.fill",
-                        color: .customOrange
+                        color: .orange
                     )
                     
                     MacroPreviewItem(
                         title: "Protein",
                         value: viewModel.calculatedProtein.asProteinString,
                         icon: "bolt.fill",
-                        color: .customGreen
+                        color: .green
                     )
                 }
-                
                 
                 if viewModel.showAdvancedOptions {
                     if viewModel.calculatedCarbs > 0 || viewModel.calculatedFat > 0 {
@@ -267,7 +455,7 @@ struct AddFoodView: View {
                                     title: "Carbs",
                                     value: viewModel.calculatedCarbs.asProteinString,
                                     icon: "leaf.fill",
-                                    color: .customBlue
+                                    color: .blue
                                 )
                             }
                             if viewModel.calculatedFat > 0 {
@@ -309,6 +497,37 @@ struct AddFoodView: View {
     }
 }
 
+struct CompactTextField: View {
+    let title: String
+    @Binding var text: String
+    let icon: String
+    let placeholder: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption2)
+                .foregroundColor(.secondaryText)
+                .textCase(.uppercase)
+            
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(.customBlue)
+                    .font(.body)
+                
+                TextField(placeholder, text: $text)
+                    .keyboardType(.decimalPad)
+                    .font(.body)
+                    .foregroundColor(.primaryText)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 40)
+            .background(Color.listBackground.opacity(0.5))
+            .cornerRadius(8)
+        }
+    }
+}
+
 struct MacroPreviewItem: View {
     let title: String
     let value: String
@@ -320,12 +539,12 @@ struct MacroPreviewItem: View {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(color)
-                
+            
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryText)
-                
+            
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondaryText)

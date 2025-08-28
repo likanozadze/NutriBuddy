@@ -19,7 +19,9 @@ final class FoodEntry {
     var sugarPer100g: Double
     var grams: Double
     var date: Date
-
+    var inputMode: String 
+    var servingSize: Double?
+    
     init(
         name: String,
         caloriesPer100g: Double,
@@ -29,7 +31,9 @@ final class FoodEntry {
         fiberPer100g: Double = 0,
         sugarPer100g: Double = 0,
         grams: Double,
-        date: Date = Date()
+        date: Date = Date(),
+        inputMode: String = "grams",
+        servingSize: Double? = nil
     ) {
         self.name = name
         self.caloriesPer100g = caloriesPer100g
@@ -40,9 +44,11 @@ final class FoodEntry {
         self.sugarPer100g = sugarPer100g
         self.grams = grams
         self.date = date
+        self.inputMode = inputMode
+        self.servingSize = servingSize
     }
 
-    // MARK: - Computed totals
+    // MARK: - Computed totals (unchanged for backward compatibility)
     var totalCalories: Double {
         (caloriesPer100g * grams) / 100
     }
@@ -66,5 +72,27 @@ final class FoodEntry {
     var totalSugar: Double {
         (sugarPer100g * grams) / 100
     }
+    
+    // MARK: - Helper computed properties
+    var isServingMode: Bool {
+        inputMode == "servings"
+    }
+    
+    var displayWeight: String {
+        if isServingMode && servingSize != nil {
+            let servingCount = grams / servingSize!
+            if abs(servingCount - 1.0) < 0.01 {
+                return "1 serving"
+            } else {
+                return "\(servingCount.formatted(.number.precision(.fractionLength(0...2)))) servings"
+            }
+        } else {
+            return "\(grams.formatted(.number.precision(.fractionLength(0...1))))g"
+        }
+    }
+    
+    var servingsCount: Double {
+        guard isServingMode, let servingSize = servingSize else { return 1 }
+        return grams / servingSize
+    }
 }
-
