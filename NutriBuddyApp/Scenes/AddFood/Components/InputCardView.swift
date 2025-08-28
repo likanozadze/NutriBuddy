@@ -32,7 +32,7 @@ struct InputCardView: View {
                     title: "Food Name",
                     text: $viewModel.name,
                     icon: "textformat",
-                    placeholder: "e.g. Chicken breast"
+                    placeholder: viewModel.inputMode == .servings ? "Egg" : "Chicken breast"
                 )
              
                 VStack(alignment: .leading, spacing: 8) {
@@ -48,12 +48,12 @@ struct InputCardView: View {
                                 .font(.title3)
                             
                             if viewModel.inputMode == .grams {
-                                TextField("e.g. 150g", text: $viewModel.grams)
+                                TextField("150g", text: $viewModel.grams)
                                     .keyboardType(.decimalPad)
                                     .font(.body)
                                     .foregroundColor(.primaryText)
                             } else {
-                                TextField("e.g. 1 serving", text: $viewModel.servingAmount)
+                                TextField("1 serving", text: $viewModel.servingAmount)
                                     .keyboardType(.decimalPad)
                                     .font(.body)
                                     .foregroundColor(.primaryText)
@@ -62,11 +62,11 @@ struct InputCardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
                         Menu {
-                            Button("grams") { viewModel.inputMode = .grams }
-                            Button("servings") { viewModel.inputMode = .servings }
+                            Button("Grams") { viewModel.inputMode = .grams }
+                            Button("Servings") { viewModel.inputMode = .servings }
                         } label: {
                             HStack(spacing: 4) {
-                                Text(viewModel.inputMode.displayName.lowercased())
+                                Text(viewModel.inputMode.displayName.capitalized)
                                     .foregroundColor(.customBlue)
                                 Image(systemName: "chevron.down")
                                     .foregroundColor(.customBlue)

@@ -9,8 +9,8 @@ import SwiftUI
 import SwiftData
 
 enum NutritionInputMode: String, CaseIterable {
-    case grams = "grams"
-    case servings = "servings"
+    case grams = "Grams"
+    case servings = "Servings"
     
     var displayName: String {
         switch self {
