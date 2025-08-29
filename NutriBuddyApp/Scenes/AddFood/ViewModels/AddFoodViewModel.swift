@@ -30,7 +30,7 @@ enum NutritionInputMode: String, CaseIterable {
 final class AddFoodViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var name = ""
-    @Published var inputMode: NutritionInputMode = .grams 
+    @Published var inputMode: NutritionInputMode = .grams
     @Published var showAdvancedOptions = false
     
     @Published var servingAmount = ""
@@ -48,10 +48,10 @@ final class AddFoodViewModel: ObservableObject {
     @Published var fiberPer100g = ""
     @Published var sugarPer100g = ""
     @Published var grams = ""
+    
+    @Published var uniqueFoodTemplates: [FoodTemplate] = []
 
     let selectedDate: Date
-    
-    // MARK: - Private Dependencies
     private var context: ModelContext
     
     init(selectedDate: Date, context: ModelContext) {
@@ -61,17 +61,17 @@ final class AddFoodViewModel: ObservableObject {
     
     // MARK: - Computed Properties for View
     var isValidForm: Bool {
-        guard !name.isEmpty else { return false }
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         
         switch inputMode {
         case .servings:
-            return Double(servingAmount) != nil &&
-                   Double(servingCalories) != nil &&
-                   Double(servingProtein) != nil
+            return isValidDouble(servingAmount) && isValidPositiveDouble(servingAmount) &&
+                   isValidDouble(servingCalories) && isValidNonNegativeDouble(servingCalories) &&
+                   isValidDouble(servingProtein) && isValidNonNegativeDouble(servingProtein)
         case .grams:
-            return Double(caloriesPer100g) != nil &&
-                   Double(proteinPer100g) != nil &&
-                   Double(grams) != nil
+            return isValidDouble(caloriesPer100g) && isValidNonNegativeDouble(caloriesPer100g) &&
+                   isValidDouble(proteinPer100g) && isValidNonNegativeDouble(proteinPer100g) &&
+                   isValidDouble(grams) && isValidPositiveDouble(grams)
         }
     }
     
@@ -82,7 +82,7 @@ final class AddFoodViewModel: ObservableObject {
                   let amount = Double(servingAmount), amount > 0 else { return 0 }
             return cal * amount
         case .grams:
-            guard let cal = Double(caloriesPer100g), cal > 0,
+            guard let cal = Double(caloriesPer100g), cal >= 0,
                   let gr = Double(grams), gr > 0 else { return 0 }
             return (cal * gr) / 100
         }
@@ -153,64 +153,140 @@ final class AddFoodViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Public Methods
+    func loadFoodTemplates() {
+        do {
+            let descriptor = FetchDescriptor<FoodEntry>()
+            let allFoods = try context.fetch(descriptor)
+            uniqueFoodTemplates = generateFoodTemplates(from: allFoods)
+        } catch {
+            print("Failed to load food templates: \(error)")
+            uniqueFoodTemplates = []
+        }
+    }
+    
+    func getFilteredFoodTemplates(searchText: String) -> [FoodTemplate] {
+        if searchText.isEmpty {
+            return uniqueFoodTemplates
+        }
+        return uniqueFoodTemplates.filter {
+            $0.name.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    func addQuickFood(_ template: FoodTemplate) {
+        let food = FoodEntry(
+            name: template.name,
+            caloriesPer100g: template.caloriesPer100g,
+            proteinPer100g: template.proteinPer100g,
+            carbsPer100g: template.carbsPer100g,
+            fatPer100g: template.fatPer100g,
+            fiberPer100g: template.fiberPer100g,
+            sugarPer100g: template.sugarPer100g,
+            grams: template.servingSize ?? 100,
+            date: selectedDate,
+            inputMode: template.inputMode,
+            servingSize: template.servingSize
+        )
+        
+        saveFood(food)
+    }
+    
     func saveFood() {
+        let food = createFoodEntry()
+        saveFood(food)
+    }
+    
+    // MARK: - Private Methods
+    private func generateFoodTemplates(from foods: [FoodEntry]) -> [FoodTemplate] {
+        let grouped = Dictionary(grouping: foods) { food in
+            "\(food.name)-\(food.caloriesPer100g)-\(food.proteinPer100g)-\(food.carbsPer100g)-\(food.fatPer100g)"
+        }
+        
+        return grouped.compactMap { _, foods in
+            guard let first = foods.first else { return nil }
+            
+            let totalEntries = foods.count
+            let lastUsed = foods.max(by: { $0.date < $1.date })?.date ?? Date.distantPast
+            
+            return FoodTemplate(
+                name: first.name,
+                caloriesPer100g: first.caloriesPer100g,
+                proteinPer100g: first.proteinPer100g,
+                carbsPer100g: first.carbsPer100g,
+                fatPer100g: first.fatPer100g,
+                fiberPer100g: first.fiberPer100g,
+                sugarPer100g: first.sugarPer100g,
+                inputMode: first.inputMode,
+                servingSize: first.servingSize,
+                timesUsed: totalEntries,
+                lastUsed: lastUsed
+            )
+        }
+        .sorted { $0.lastUsed > $1.lastUsed }
+    }
+    
+    private func createFoodEntry() -> FoodEntry {
         switch inputMode {
         case .servings:
-            guard let servCal = Double(servingCalories),
-                  let servProt = Double(servingProtein),
-                  let amount = Double(servingAmount) else { return }
+            let servCal = Double(servingCalories) ?? 0
+            let servProt = Double(servingProtein) ?? 0
+            let amount = Double(servingAmount) ?? 1
             
             let totalGrams = amount * 100
-            let calPer100g = servCal
-            let protPer100g = servProt
-            let carbsPer100g = Double(servingCarbs) ?? 0
-            let fatPer100g = Double(servingFat) ?? 0
-            let fiberPer100g = Double(servingFiber) ?? 0
-            let sugarPer100g = Double(servingSugar) ?? 0
             
-            let food = FoodEntry(
-                name: name,
-                caloriesPer100g: calPer100g,
-                proteinPer100g: protPer100g,
-                carbsPer100g: carbsPer100g,
-                fatPer100g: fatPer100g,
-                fiberPer100g: fiberPer100g,
-                sugarPer100g: sugarPer100g,
+            return FoodEntry(
+                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                caloriesPer100g: servCal,
+                proteinPer100g: servProt,
+                carbsPer100g: Double(servingCarbs) ?? 0,
+                fatPer100g: Double(servingFat) ?? 0,
+                fiberPer100g: Double(servingFiber) ?? 0,
+                sugarPer100g: Double(servingSugar) ?? 0,
                 grams: totalGrams,
                 date: selectedDate,
                 inputMode: inputMode.rawValue,
                 servingSize: 100
             )
             
-            context.insert(food)
-            
         case .grams:
-            guard let calPer100g = Double(caloriesPer100g),
-                  let protPer100g = Double(proteinPer100g),
-                  let grams = Double(grams) else { return }
-            
-            let food = FoodEntry(
-                name: name,
-                caloriesPer100g: calPer100g,
-                proteinPer100g: protPer100g,
+            return FoodEntry(
+                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                caloriesPer100g: Double(caloriesPer100g) ?? 0,
+                proteinPer100g: Double(proteinPer100g) ?? 0,
                 carbsPer100g: Double(carbsPer100g) ?? 0,
                 fatPer100g: Double(fatPer100g) ?? 0,
                 fiberPer100g: Double(fiberPer100g) ?? 0,
                 sugarPer100g: Double(sugarPer100g) ?? 0,
-                grams: grams,
+                grams: Double(grams) ?? 0,
                 date: selectedDate,
                 inputMode: inputMode.rawValue
             )
-            
-            context.insert(food)
         }
-
+    }
+    
+    private func saveFood(_ food: FoodEntry) {
+        context.insert(food)
+        
         do {
             try context.save()
         } catch {
             print("Failed to save food: \(error)")
         }
     }
+    
+    // MARK: - Validation Helpers
+    private func isValidDouble(_ string: String) -> Bool {
+        return Double(string) != nil
+    }
+    
+    private func isValidPositiveDouble(_ string: String) -> Bool {
+        guard let value = Double(string) else { return false }
+        return value > 0
+    }
+    
+    private func isValidNonNegativeDouble(_ string: String) -> Bool {
+        guard let value = Double(string) else { return false }
+        return value >= 0
+    }
 }
-
