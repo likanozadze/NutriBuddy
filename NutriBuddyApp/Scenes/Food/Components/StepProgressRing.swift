@@ -37,9 +37,6 @@ struct StepProgressRing: View {
                     Text("\(animatedSteps.formatted())")
                         .font(.headline)
                         .foregroundColor(.gradientPrimaryText)
-                    Text("/ \(goal.formatted())")
-                        .font(.caption)
-                        .foregroundColor(.gradientTertiaryText)
                 }
             }
             .frame(width: 90, height: 90)

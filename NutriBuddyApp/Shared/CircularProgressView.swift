@@ -27,11 +27,11 @@ struct CircularProgressView: View {
             
             VStack(spacing: 2) {
                 Text("\(value)")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundColor(.gradientPrimaryText)
                 
                 Text(label)
-                    .font(.system(size: 8, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(.gradientTertiaryText)
             }
         }
