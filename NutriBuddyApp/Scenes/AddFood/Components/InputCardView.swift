@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct InputCardView: View {
-    @StateObject private var viewModel: AddFoodViewModel
-    
+    @ObservedObject var viewModel: AddFoodViewModel
+
     init(viewModel: AddFoodViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
-    }
+           self.viewModel = viewModel
+       }
+       
     
     var body: some View {
         VStack(spacing: 16) {

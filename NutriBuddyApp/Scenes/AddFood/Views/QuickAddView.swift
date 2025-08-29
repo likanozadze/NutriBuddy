@@ -9,10 +9,10 @@ import SwiftUI
 
 struct QuickAddView: View {
     @ObservedObject var viewModel: AddFoodViewModel
-    let onFoodSelected: (FoodTemplate) -> Void
+    let onFoodSelected: (RecentFood) -> Void
     @State private var searchText = ""
     
-    private var filteredFoods: [FoodTemplate] {
+    private var filteredFoods: [RecentFood] {
         viewModel.getFilteredFoodTemplates(searchText: searchText)
     }
     
@@ -61,7 +61,7 @@ struct QuickAddView: View {
 
 // MARK: - Quick Add Food Card
 struct QuickAddFoodCard: View {
-    let template: FoodTemplate
+    let template: RecentFood
     let onTap: () -> Void
     @Environment(\.colorScheme) private var colorScheme
     

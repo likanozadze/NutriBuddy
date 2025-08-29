@@ -49,7 +49,7 @@ final class AddFoodViewModel: ObservableObject {
     @Published var sugarPer100g = ""
     @Published var grams = ""
     
-    @Published var uniqueFoodTemplates: [FoodTemplate] = []
+    @Published var uniqueFoodTemplates: [RecentFood] = []
 
     let selectedDate: Date
     private var context: ModelContext
@@ -165,7 +165,7 @@ final class AddFoodViewModel: ObservableObject {
         }
     }
     
-    func getFilteredFoodTemplates(searchText: String) -> [FoodTemplate] {
+    func getFilteredFoodTemplates(searchText: String) -> [RecentFood] {
         if searchText.isEmpty {
             return uniqueFoodTemplates
         }
@@ -174,7 +174,7 @@ final class AddFoodViewModel: ObservableObject {
         }
     }
     
-    func addQuickFood(_ template: FoodTemplate) {
+    func addQuickFood(_ template: RecentFood) {
         let food = FoodEntry(
             name: template.name,
             caloriesPer100g: template.caloriesPer100g,
@@ -198,7 +198,7 @@ final class AddFoodViewModel: ObservableObject {
     }
     
     // MARK: - Private Methods
-    private func generateFoodTemplates(from foods: [FoodEntry]) -> [FoodTemplate] {
+    private func generateFoodTemplates(from foods: [FoodEntry]) -> [RecentFood] {
         let grouped = Dictionary(grouping: foods) { food in
             "\(food.name)-\(food.caloriesPer100g)-\(food.proteinPer100g)-\(food.carbsPer100g)-\(food.fatPer100g)"
         }
@@ -209,7 +209,7 @@ final class AddFoodViewModel: ObservableObject {
             let totalEntries = foods.count
             let lastUsed = foods.max(by: { $0.date < $1.date })?.date ?? Date.distantPast
             
-            return FoodTemplate(
+            return RecentFood(
                 name: first.name,
                 caloriesPer100g: first.caloriesPer100g,
                 proteinPer100g: first.proteinPer100g,

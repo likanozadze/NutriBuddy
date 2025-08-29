@@ -3,7 +3,6 @@
 //  NutriBuddyApp
 //
 //  Created by Lika Nozadze on 8/29/25.
-//
 
 import SwiftUI
 
@@ -15,13 +14,9 @@ struct ManualAddView: View {
         ScrollView {
             VStack(spacing: 20) {
                 HeaderCardView()
-                
                 InputCardView(viewModel: viewModel)
-                
                 AdvancedMacrosSection(viewModel: viewModel)
-                
                 PreviewCardView(viewModel: viewModel)
-                
                 SaveButton(
                     isEnabled: viewModel.isValidForm,
                     action: {
@@ -34,5 +29,8 @@ struct ManualAddView: View {
             .padding(.top, 8)
         }
         .background(Color.appBackground)
+        .onAppear {
+            viewModel.loadFoodTemplates()
+        }
     }
 }

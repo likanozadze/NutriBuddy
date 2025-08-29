@@ -7,8 +7,8 @@
 
 import Foundation
 
-// MARK: - Food Template Model
-struct FoodTemplate: Identifiable, Hashable {
+// MARK: - Recent Food Model
+struct RecentFood: Identifiable, Hashable {
     let id = UUID()
     let name: String
     let caloriesPer100g: Double
