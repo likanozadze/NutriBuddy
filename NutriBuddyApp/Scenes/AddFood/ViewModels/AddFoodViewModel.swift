@@ -4,7 +4,7 @@
 //
 //  Created by Lika Nozadze on 8/27/25.
 //
-//
+
 import SwiftUI
 import SwiftData
 
@@ -213,3 +213,4 @@ final class AddFoodViewModel: ObservableObject {
         }
     }
 }
+
