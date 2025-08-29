@@ -22,31 +22,28 @@ struct StepProgressRing: View {
         VStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 8)
+                    .stroke(Color.gradientSecondaryText.opacity(0.3), lineWidth: 8)
                 
                 Circle()
                     .trim(from: 0.0, to: progress)
-                    .stroke(ringColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .stroke(Color.gradientPrimaryText, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .animation(.easeOut(duration: 0.6), value: progress)
                 
                 VStack {
                     Image(systemName: "figure.walk")
-                        .foregroundColor(ringColor)
+                        .foregroundColor(Color.gradientPrimaryText)
                         .font(.title2)
                     Text("\(animatedSteps.formatted())")
                         .font(.headline)
-                        .foregroundColor(.primaryText)
+                        .foregroundColor(.gradientPrimaryText)
                     Text("/ \(goal.formatted())")
                         .font(.caption)
-                        .foregroundColor(.secondaryText)
+                        .foregroundColor(.gradientTertiaryText)
                 }
             }
-            .frame(width: 80, height: 80)
+            .frame(width: 90, height: 90)
             
-            Text("Steps")
-                .font(.caption)
-                .foregroundColor(.secondaryText)
         }
         .onAppear {
             animatedSteps = 0

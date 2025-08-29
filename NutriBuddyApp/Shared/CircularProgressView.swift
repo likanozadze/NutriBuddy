@@ -16,12 +16,12 @@ struct CircularProgressView: View {
         ZStack {
             Circle()
                 .stroke(Color.gradientSecondaryText.opacity(0.3), lineWidth: 8)
-                .frame(width: 80, height: 80)
+                .frame(width: 90, height: 90)
             
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(Color.gradientPrimaryText, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                .frame(width: 80, height: 80)
+                .frame(width: 90, height: 90)
                 .rotationEffect(.degrees(-90))
                 .animation(.easeInOut(duration: 1.0), value: progress)
             

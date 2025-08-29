@@ -13,7 +13,11 @@ struct ProgressCardView: View {
     var body: some View {
         VStack(spacing: 20) {
             if viewModel.hasProfile {
-                CalorieProgressCard(viewModel: viewModel.calorieProgressViewModel)
+                CalorieProgressCard(
+                    viewModel: viewModel.calorieProgressViewModel,
+                    steps: viewModel.stepsToday,
+                    stepGoal: viewModel.stepGoal
+                )
                 
                 LazyVGrid(columns: macroColumns, spacing: 16) {
                     ForEach(viewModel.macroProgressViewModel.macros, id: \.title) { macro in

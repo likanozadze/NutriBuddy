@@ -1,84 +1,17 @@
-////
-////  CalorieProgressCard.swift
-////  NutriBuddyApp
-////
-////  Created by Lika Nozadze on 8/24/25.
-////
-//
-//import SwiftUI
-//
-//struct CalorieProgressCard: View {
-//    @ObservedObject var viewModel: CalorieProgressViewModel
-//    
-//    var body: some View {
-//        ZStack {
-//            LinearGradient(
-//                gradient: Gradient(colors: [
-//                    Color.gradientStart,
-//                    Color.gradientEnd
-//                ]),
-//                startPoint: .topLeading,
-//                endPoint: .bottomTrailing
-//            )
-//            .clipShape(RoundedRectangle(cornerRadius: 20))
-//            
-//            HStack {
-//                VStack(alignment: .leading, spacing: 8) {
-//                    HStack {
-//                        Image(systemName: "target")
-//                            .foregroundColor(.gradientSecondaryText)
-//                            .font(.title3)
-//                        
-//                        Text("Your Progress")
-//                            .font(.subheadline)
-//                            .foregroundColor(.gradientSecondaryText)
-//                    }
-//                    
-//                    Text("\(viewModel.progress.progressPercentage)%")
-//                        .font(.system(size: 36, weight: .bold, design: .rounded))
-//                        .foregroundColor(.gradientPrimaryText)
-//                    
-//                    Text(viewModel.formattedDate)
-//                        .font(.caption)
-//                        .foregroundColor(.gradientTertiaryText)
-//                    
-//                    Spacer()
-//                    
-//                    VStack(alignment: .leading, spacing: 2) {
-//                        Text("Goal: \(viewModel.targetText)")
-//                            .font(.caption)
-//                            .foregroundColor(.gradientSecondaryText)
-//                    
-//                        Text("Remaining: \(viewModel.remainingText)")
-//                            .font(.caption)
-//                            .foregroundColor(.gradientSecondaryText)
-//                    }
-//                }
-//                
-//                Spacer()
-//                
-//                CircularProgressView(
-//                    progress: viewModel.progress.progress,
-//                    value: Int(viewModel.progress.eaten),
-//                    label: "Calories"
-//                )
-//            }
-//            .padding(20)
-//        }
-//    }
-//}
 //
 //  CalorieProgressCard.swift
 //  NutriBuddyApp
 //
-//  Enhanced with overeating visual indicators
+//  Created by Lika Nozadze on 8/24/25.
 //
-
 
 import SwiftUI
 
 struct CalorieProgressCard: View {
     @ObservedObject var viewModel: CalorieProgressViewModel
+    
+    var steps: Int
+    var stepGoal: Int
     
     var body: some View {
         ZStack {
@@ -126,11 +59,6 @@ struct CalorieProgressCard: View {
                         Text("Goal: \(viewModel.targetText)")
                             .font(.caption)
                             .foregroundColor(.gradientSecondaryText)
-                    
-                        Text(remainingText)
-                            .font(.caption)
-                            .foregroundColor(remainingTextColor)
-                            .fontWeight(isWarningZone ? .bold : .regular)
                     }
                     
                     
@@ -150,11 +78,20 @@ struct CalorieProgressCard: View {
                 
                 Spacer()
                 
-                CircularProgressView(
-                    progress: viewModel.progress.progress,
-                    value: Int(viewModel.progress.eaten),
-                    label: "Calories"
-                )
+                HStack(spacing: 16) {
+                    CircularProgressView(
+                        progress: viewModel.progress.progress,
+                        value: remainingCalories,
+                        label: "Remaining"
+                    )
+                    
+                    StepProgressRing(
+                        steps: steps,
+                        goal: stepGoal,
+                        ringColor: .customBlue
+                    )
+
+                }
             }
             .padding(20)
         }
@@ -209,7 +146,7 @@ struct CalorieProgressCard: View {
         case .onTrack:
             return [Color.green.opacity(0.6), Color.mint.opacity(0.7)]
         case .almostComplete:
-            return [Color.orange.opacity(0.6), Color.yellow.opacity(0.7)] 
+            return [Color.orange.opacity(0.6), Color.yellow.opacity(0.7)]
         case .overeating:
             return [Color.red.opacity(0.7), Color.pink.opacity(0.6)]
         }
@@ -244,7 +181,7 @@ struct CalorieProgressCard: View {
     private var progressTitle: String {
         switch progressState {
         case .normal:
-            return "Your Progress"
+            return "Calories"
         case .onTrack:
             return "Great Progress!"
         case .almostComplete:
@@ -270,15 +207,6 @@ struct CalorieProgressCard: View {
             return .orange
         } else {
             return .gradientPrimaryText
-        }
-    }
-    
-    private var remainingText: String {
-        if isOvereating {
-            let excess = Int(viewModel.progress.eaten - viewModel.progress.target)
-            return "Over by: \(excess) kcal"
-        } else {
-            return "Remaining: \(viewModel.remainingText)"
         }
     }
     

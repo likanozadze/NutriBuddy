@@ -22,11 +22,6 @@ struct FoodListView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     DailySummaryView(viewModel: progressViewModel)
-                    StepProgressRing(
-                        steps: progressViewModel.stepsToday,
-                        goal: 10000,
-                        ringColor: .customBlue
-                    )
                     .padding(12)
                     .background(Color.listBackground.opacity(0.5))
                     .cornerRadius(12)

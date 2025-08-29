@@ -12,8 +12,9 @@ class ProgressViewModel: ObservableObject {
     @Published var calorieProgressViewModel = CalorieProgressViewModel()
     @Published var macroProgressViewModel = MacroProgressViewModel()
     @Published private(set) var hasProfile = false
-   @Published var stepsToday: Int = 0
-
+    @Published var stepsToday: Int = 0
+    @Published var stepGoal: Int = 10000
+    
     func updateData(foods: [FoodEntry], profile: UserProfile?) {
         guard let profile = profile else {
             hasProfile = false
@@ -30,7 +31,7 @@ class ProgressViewModel: ObservableObject {
         calorieProgressViewModel.updateProgress(emptyProgress)
         macroProgressViewModel.updateMacros([])
     }
-
+    
     private func updateProgressWithProfile(foods: [FoodEntry], profile: UserProfile) {
         let totalCalories = NutritionCalculator.calculateTotalCalories(from: foods)
         let totalProtein = NutritionCalculator.calculateTotalProtein(from: foods)
@@ -47,8 +48,8 @@ class ProgressViewModel: ObservableObject {
         let macros = createMacroProgress(
             totalProtein: totalProtein,
             totalCarbs: totalCarbs,
-            totalFats: totalFats,       
-            totalFiber: totalFiber,     
+            totalFats: totalFats,
+            totalFiber: totalFiber,
             profile: profile
         )
         macroProgressViewModel.updateMacros(macros)
@@ -66,7 +67,7 @@ class ProgressViewModel: ObservableObject {
             MacroProgress(title: "Carbs", current: totalCarbs, target: profile.carbTarget, unit: "g", color: .customOrange),
             MacroProgress(title: "Fats", current: totalFats, target: profile.fatTarget, unit: "g", color: .yellow),
             MacroProgress(title: "Fiber", current: totalFiber, target: profile.fiberTarget, unit: "g", color: .blue),
-          ]
+        ]
     }
-
+    
 }

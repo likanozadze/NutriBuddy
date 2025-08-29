@@ -13,7 +13,6 @@ struct ManualAddView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                HeaderCardView()
                 InputCardView(viewModel: viewModel)
                 AdvancedMacrosSection(viewModel: viewModel)
                 PreviewCardView(viewModel: viewModel)
