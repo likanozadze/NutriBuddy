@@ -5,6 +5,7 @@
 //  Created by Lika Nozadze on 8/23/25.
 //
 //
+
 import SwiftUI
 import SwiftData
 
@@ -14,8 +15,7 @@ struct FoodListView: View {
     @Environment(\.modelContext) private var context
     @State private var foodListViewModel = FoodListViewModel()
     @State private var progressViewModel = ProgressViewModel()
-    @StateObject private var healthKitManager = HealthKitManager()
-    
+    @EnvironmentObject private var healthKitManager: HealthKitManager
     
     var body: some View {
         NavigationStack {
@@ -25,7 +25,6 @@ struct FoodListView: View {
                     .padding(12)
                     .background(Color.listBackground.opacity(0.5))
                     .cornerRadius(12)
-                    
                     
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
@@ -65,11 +64,28 @@ struct FoodListView: View {
                 }
             }
             .onAppear {
+                print("FoodListView appeared")
                 setupViewModels()
             }
-            .onChange(of: allFoods) { _, _ in setupViewModels() }
-            .onChange(of: profiles) { _, _ in setupViewModels() }
-            .onChange(of: foodListViewModel.selectedDate) { _, _ in updateProgressData() }
+            .onChange(of: allFoods) { _, _ in
+                print("AllFoods changed, updating view models")
+                setupViewModels()
+            }
+            .onChange(of: profiles) { _, _ in
+                print("Profiles changed, updating view models")
+                setupViewModels()
+            }
+            .onChange(of: foodListViewModel.selectedDate) { _, _ in
+                print("Selected date changed: \(foodListViewModel.selectedDate)")
+                updateProgressData()
+            }
+            
+            .onChange(of: healthKitManager.isAuthorized) { _, isAuthorized in
+                if isAuthorized {
+                    print("HealthKit authorized, fetching steps")
+                    updateProgressData()
+                }
+            }
         }
     }
     
@@ -91,11 +107,13 @@ struct FoodListView: View {
     }
     
     private func setupViewModels() {
+        print("Setting up view models")
         foodListViewModel.setup(allFoods: allFoods, profiles: profiles, context: context)
         updateProgressData()
     }
     
     private func updateProgressData() {
+        print("Updating progress data")
         let dailyFoods = NutritionCalculator.filterFoodsForDate(
             allFoods,
             date: foodListViewModel.selectedDate
@@ -105,8 +123,17 @@ struct FoodListView: View {
             foods: dailyFoods,
             profile: foodListViewModel.currentProfile
         )
-        healthKitManager.fetchTodaySteps { steps in
-            progressViewModel.stepsToday = Int(steps)
+        
+     
+        if Calendar.current.isDateInToday(foodListViewModel.selectedDate) {
+            print("Fetching steps for today")
+            healthKitManager.fetchTodayStepsWithCaching { steps in
+                print("Received steps: \(steps)")
+                progressViewModel.stepsToday = Int(steps)
+            }
+        } else {
+            
+            progressViewModel.stepsToday = 0
         }
     }
 }

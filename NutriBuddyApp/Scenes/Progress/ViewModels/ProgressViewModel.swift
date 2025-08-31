@@ -12,7 +12,11 @@ class ProgressViewModel: ObservableObject {
     @Published var calorieProgressViewModel = CalorieProgressViewModel()
     @Published var macroProgressViewModel = MacroProgressViewModel()
     @Published private(set) var hasProfile = false
-    @Published var stepsToday: Int = 0
+    @Published var stepsToday: Int = 0 {
+        didSet {
+            print("ProgressViewModel: steps updated to \(stepsToday)")
+        }
+    }
     @Published var stepGoal: Int = 10000
     
     func updateData(foods: [FoodEntry], profile: UserProfile?) {
@@ -70,4 +74,10 @@ class ProgressViewModel: ObservableObject {
         ]
     }
     
+    func refreshSteps(using healthKitManager: HealthKitManager) {
+        print("ProgressViewModel: refreshing steps")
+        healthKitManager.forceRefreshSteps { [weak self] steps in
+            self?.stepsToday = Int(steps)
+        }
+    }
 }

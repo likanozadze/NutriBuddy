@@ -28,8 +28,8 @@ struct ManualAddView: View {
             .padding(.top, 8)
         }
         .background(Color.appBackground)
-        .onAppear {
-            viewModel.loadFoodTemplates()
-        }
+//        .onAppear {
+//            viewModel.loadFoodTemplates()
+//        }
     }
 }

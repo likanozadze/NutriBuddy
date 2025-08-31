@@ -4,38 +4,65 @@
 //
 //  Created by Lika Nozadze on 8/27/25.
 //
-
+//
 import SwiftUI
 import SwiftData
 
+// MARK: -  ProfileViewModel
 @MainActor
 class ProfileViewModel: ObservableObject {
-    // MARK: - Published Properties
     @Published var age: String = ""
     @Published var weight: String = ""
     @Published var height: String = ""
     @Published var selectedGender: Gender = .male
-    @Published var selectedActivity: ActivityLevel = .moderate
+    @Published var selectedActivity: ActivityLevel = .sedentary
     @Published var selectedGoal: WeightGoal = .maintain
-    
+    @Published var previewProfile: UserProfile?
     @Published var showingSuccessAlert = false
     @Published var isUpdating = false
-    @Published var stepsToday: Double = 0
     
-    // MARK: - Private Properties
-    private var modelContext: ModelContext?
+    private var context: ModelContext?
     private var profiles: [UserProfile] = []
+    private var calculationTask: Task<Void, Never>?
     
-    // MARK: - Computed Properties
-    var previewProfile: UserProfile? {
+    func configure(context: ModelContext, profiles: [UserProfile]) {
+        self.context = context
+        self.profiles = profiles
+        loadExistingProfile()
+    }
+    
+    func recalculateNutritionTargets() {
+        calculationTask?.cancel()
+        
+        calculationTask = Task {
+            await performNutritionCalculations()
+        }
+    }
+    
+    
+    private func performNutritionCalculations() async {
+        let result = await Task.detached(priority: .background) { [weak self] () -> UserProfile? in
+            guard let self = self else { return nil }
+            return await self.calculatePreviewProfile()
+        }.value
+        
+        await MainActor.run {
+            previewProfile = result
+        }
+    }
+
+    private func calculatePreviewProfile() -> UserProfile? {
         guard let ageInt = Int(age),
               let weightDouble = Double(weight),
               let heightInt = Int(height),
-              ageInt > 0, weightDouble > 0, heightInt > 0 else {
+              ageInt > 0,
+              weightDouble > 0,
+              heightInt > 0 else {
             return nil
         }
         
-        return UserProfile(
+
+        let tempProfile = UserProfile(
             age: ageInt,
             weight: weightDouble,
             height: heightInt,
@@ -43,108 +70,69 @@ class ProfileViewModel: ObservableObject {
             activityLevel: selectedActivity,
             goal: selectedGoal
         )
-    }
-    
-    var isProfileValid: Bool {
-        guard let ageInt = Int(age),
-              let weightDouble = Double(weight),
-              let heightInt = Int(height) else {
-            return false
-        }
         
-        return ageInt > 0 && ageInt < 120 &&
-        weightDouble > 0 && weightDouble < 500 &&
-        heightInt > 0 && heightInt < 300
+        return tempProfile
     }
     
-    // MARK: - Initialization
-    func configure(context: ModelContext, profiles: [UserProfile]) {
-        self.modelContext = context
-        self.profiles = profiles
-        loadProfile()
-    }
-    
-    // MARK: - Profile Management
-    func loadProfile() {
-        guard let profile = profiles.first else { return }
-        age = "\(profile.age)"
-        weight = "\(profile.weight)"
-        height = "\(profile.height)"
-        selectedGender = profile.gender
-        selectedActivity = profile.activityLevel
-        selectedGoal = profile.goal
-    }
-    
-    func updateProfileIfValid() {
-        guard isProfileValid,
-              let profile = profiles.first,
-              let context = modelContext else { return }
-        
-        profile.gender = selectedGender
-        profile.activityLevel = selectedActivity
-        profile.goal = selectedGoal
-        
-        try? context.save()
-    }
-    
-    func saveProfile() {
-        guard let ageInt = Int(age),
-              let weightDouble = Double(weight),
-              let heightInt = Int(height),
-              let profile = profiles.first,
-              let context = modelContext else { return }
-        
+    func saveProfileAsync() async {
         isUpdating = true
         
+        await Task.detached { [weak self] in
+            await self?.performSaveOperation()
+        }.value
         
-        Task {
-            try await Task.sleep(nanoseconds: 500_000_000)
-            
-            profile.age = ageInt
-            profile.weight = weightDouble
-            profile.height = heightInt
-            profile.gender = selectedGender
-            profile.activityLevel = selectedActivity
-            profile.goal = selectedGoal
-            
-            do {
-                try context.save()
-                showingSuccessAlert = true
-            } catch {
-                print("Error saving profile: \(error)")
-                
-            }
-            
-            isUpdating = false
+        showingSuccessAlert = true
+        isUpdating = false
+    }
+    
+    private func performSaveOperation() async {
+        guard let context = context,
+              let ageInt = Int(age),
+              let weightDouble = Double(weight),
+              let heightInt = Int(height) else {
+            return
         }
-    }
-    
-    // MARK: - Field Change Handlers
-    func onGenderChanged() {
-        updateProfileIfValid()
-    }
-    
-    func onActivityLevelChanged() {
-        updateProfileIfValid()
-    }
-    
-    func onGoalChanged() {
-        updateProfileIfValid()
+        
+        await MainActor.run {
+            do {
+                
+                for profile in profiles {
+                    context.delete(profile)
+                }
+                
+
+                let newProfile = UserProfile(
+                    age: ageInt,
+                    weight: weightDouble,
+                    height: heightInt,
+                    gender: selectedGender,
+                    activityLevel: selectedActivity,
+                    goal: selectedGoal
+                )
+                
+                context.insert(newProfile)
+                try context.save()
+                
+                previewProfile = newProfile
+            } catch {
+                print("Failed to save profile: \(error)")
+            }
+        }
     }
     
     func dismissSuccessAlert() {
         showingSuccessAlert = false
     }
     
-    func fetchSteps(from healthManager: HealthKitManager) {
-          print("ProfileViewModel: fetchSteps called")
-          healthManager.fetchTodaySteps { [weak self] steps in
-              print("ProfileViewModel: received steps: \(steps)")
-              DispatchQueue.main.async {
-                  self?.stepsToday = steps
-                  print("ProfileViewModel: stepsToday updated to: \(self?.stepsToday ?? 0)")
-              }
-          }
-      }
-      
+    private func loadExistingProfile() {
+        guard let existingProfile = profiles.first else { return }
+        
+        age = String(existingProfile.age)
+        weight = String(existingProfile.weight)
+        height = String(existingProfile.height)
+        selectedGender = existingProfile.gender
+        selectedActivity = existingProfile.activityLevel
+        selectedGoal = existingProfile.goal
+        previewProfile = existingProfile
+    }
 }

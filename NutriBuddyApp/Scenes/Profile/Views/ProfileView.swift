@@ -13,6 +13,14 @@ struct ProfileView: View {
     @Query var profiles: [UserProfile]
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel = ProfileViewModel()
+
+    @State private var localAge: String = ""
+    @State private var localWeight: String = ""
+    @State private var localHeight: String = ""
+    
+    @State private var isCalculating = false
+    @State private var calculationTask: Task<Void, Never>?
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -26,13 +34,14 @@ struct ProfileView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
             }
-            .hideKeyboardOnTap()
-
             .background(Color.appBackground)
-            .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 viewModel.configure(context: context, profiles: profiles)
-                
+                syncLocalState()
+            }
+            .onDisappear {
+                calculationTask?.cancel()
+                syncViewModelState()
             }
             .alert("Profile Updated!", isPresented: $viewModel.showingSuccessAlert) {
                 Button("OK") {
@@ -79,33 +88,38 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 16) {
-                CustomTextField(
+                AppTextField(
                     title: "Age",
-                    text: $viewModel.age,
+                    text: $localAge,
                     icon: "calendar",
                     placeholder: "Enter your age",
                     keyboardType: .numberPad,
-                    compact: true
+                    style: .regular,
+                    debounceTime: 0.5,
+                    onTextChanged: { _ in debouncedRecalculation() }
                 )
 
-                CustomTextField(
+                AppTextField(
                     title: "Weight (kg)",
-                    text: $viewModel.weight,
+                    text: $localWeight,
                     icon: "scalemass",
                     placeholder: "Enter your weight",
                     keyboardType: .decimalPad,
-                    compact: true
+                    style: .regular,
+                    debounceTime: 0.5,
+                    onTextChanged: { _ in debouncedRecalculation() }
                 )
 
-                CustomTextField(
+                AppTextField(
                     title: "Height (cm)",
-                    text: $viewModel.height,
+                    text: $localHeight,
                     icon: "ruler",
                     placeholder: "Enter your height",
                     keyboardType: .numberPad,
-                    compact: true
+                    style: .regular,
+                    debounceTime: 0.5,
+                    onTextChanged: { _ in debouncedRecalculation() }
                 )
-
 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -125,7 +139,7 @@ struct ProfileView: View {
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: viewModel.selectedGender) { _, _ in
-                        viewModel.onGenderChanged()
+                        debouncedRecalculation()
                     }
                 }
             }
@@ -168,7 +182,7 @@ struct ProfileView: View {
                         Spacer()
                     }
                     .onChange(of: viewModel.selectedActivity) { _, _ in
-                        viewModel.onActivityLevelChanged()
+                        debouncedRecalculation()
                     }
                 }
                 
@@ -192,7 +206,7 @@ struct ProfileView: View {
                         Spacer()
                     }
                     .onChange(of: viewModel.selectedGoal) { _, _ in
-                        viewModel.onGoalChanged()
+                        debouncedRecalculation()
                     }
                 }
             }
@@ -204,7 +218,6 @@ struct ProfileView: View {
     // MARK: - Nutrition Display Card
     private var nutritionDisplayCard: some View {
         VStack(spacing: 20) {
-
             HStack {
                 Image(systemName: "flame.fill")
                     .foregroundColor(.customOrange)
@@ -213,6 +226,11 @@ struct ProfileView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 Spacer()
+                
+                if isCalculating {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
             }
             
             if let preview = viewModel.previewProfile {
@@ -290,14 +308,20 @@ struct ProfileView: View {
                 }
             } else {
                 VStack(spacing: 8) {
-                    Text("--")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.secondaryText)
-                    
-                    Text("Complete your profile to see nutrition targets")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                        .multilineTextAlignment(.center)
+                    if isCalculating {
+                        Text("Calculating...")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .foregroundColor(.secondaryText)
+                    } else {
+                        Text("--")
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .foregroundColor(.secondaryText)
+                        
+                        Text("Complete your profile to see nutrition targets")
+                            .font(.subheadline)
+                            .foregroundColor(.secondaryText)
+                            .multilineTextAlignment(.center)
+                    }
                 }
             }
         }
@@ -305,10 +329,13 @@ struct ProfileView: View {
         .cardStyle()
     }
     
-
     // MARK: - Update Button
     private var updateButton: some View {
-        Button(action: viewModel.saveProfile) {
+        Button(action: {
+            Task {
+                await viewModel.saveProfileAsync()
+            }
+        }) {
             HStack {
                 if viewModel.isUpdating {
                     ProgressView()
@@ -330,10 +357,55 @@ struct ProfileView: View {
             )
             .foregroundColor(.white)
             .cornerRadius(12)
-            .disabled(viewModel.isUpdating || !viewModel.isProfileValid)
-            .opacity(viewModel.isProfileValid ? 1.0 : 0.6)
+            .disabled(viewModel.isUpdating || !isProfileValid())
+            .opacity(isProfileValid() ? 1.0 : 0.6)
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.isUpdating)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func syncLocalState() {
+        localAge = viewModel.age
+        localWeight = viewModel.weight
+        localHeight = viewModel.height
+    }
+    
+    private func syncViewModelState() {
+        viewModel.age = localAge
+        viewModel.weight = localWeight
+        viewModel.height = localHeight
+    }
+    
+    private func debouncedRecalculation() {
+        calculationTask?.cancel()
+        
+        calculationTask = Task {
+            isCalculating = true
+            
+            try? await Task.sleep(nanoseconds: 800_000_000) // 0.8s debounce
+            
+            if !Task.isCancelled {
+                await MainActor.run {
+                    // Sync local state to view model
+                    syncViewModelState()
+                    
+                    // Perform calculations
+                    viewModel.recalculateNutritionTargets()
+                    
+                    isCalculating = false
+                }
+            }
+        }
+    }
+    
+    private func isProfileValid() -> Bool {
+        return !localAge.isEmpty &&
+               !localWeight.isEmpty &&
+               !localHeight.isEmpty &&
+               Int(localAge) != nil &&
+               Double(localWeight) != nil &&
+               Int(localHeight) != nil
     }
     
     // MARK: - Macro Card Component
@@ -362,6 +434,7 @@ struct ProfileView: View {
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.primaryText)
+                        .animation(.easeInOut(duration: 0.2), value: value)
                     Text(unit)
                         .font(.caption)
                         .foregroundColor(.secondaryText)
@@ -371,13 +444,6 @@ struct ProfileView: View {
             .padding(12)
             .background(Color.listBackground)
             .cornerRadius(8)
-        }
-    }
-}
-extension View {
-    func hideKeyboardOnTap() -> some View {
-        self.onTapGesture {
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
     }
 }

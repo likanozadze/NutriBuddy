@@ -11,9 +11,8 @@ struct InputCardView: View {
     @ObservedObject var viewModel: AddFoodViewModel
 
     init(viewModel: AddFoodViewModel) {
-           self.viewModel = viewModel
-       }
-       
+        self.viewModel = viewModel
+    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -29,13 +28,15 @@ struct InputCardView: View {
             }
             
             VStack(spacing: 12) {
-                CustomTextField(
+                AppTextField(
                     title: "Food Name",
                     text: $viewModel.name,
                     icon: "textformat",
-                    placeholder: viewModel.inputMode == .servings ? "Egg" : "Chicken breast"
+                    placeholder: viewModel.inputMode == .servings ? "Egg" : "Chicken breast",
+                    style: .regular
                 )
-             
+                            
+
                 VStack(alignment: .leading, spacing: 8) {
                     Text("AMOUNT")
                         .font(.caption)
@@ -63,8 +64,16 @@ struct InputCardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
                         Menu {
-                            Button("Grams") { viewModel.inputMode = .grams }
-                            Button("Servings") { viewModel.inputMode = .servings }
+                            Button("Grams") {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    viewModel.inputMode = .grams
+                                }
+                            }
+                            Button("Servings") {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    viewModel.inputMode = .servings
+                                }
+                            }
                         } label: {
                             HStack(spacing: 4) {
                                 Text(viewModel.inputMode.displayName.capitalized)

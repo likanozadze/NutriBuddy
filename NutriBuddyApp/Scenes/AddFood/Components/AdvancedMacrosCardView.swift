@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct AdvancedMacrosCardView: View {
-    @StateObject private var viewModel: AddFoodViewModel
-    
+    @ObservedObject var viewModel: AddFoodViewModel
+
     init(viewModel: AddFoodViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
     }
 
     var body: some View {
@@ -30,66 +30,82 @@ struct AdvancedMacrosCardView: View {
             VStack(spacing: 12) {
                 if viewModel.inputMode == .servings {
                     HStack(spacing: 12) {
-                        CompactTextField(
+                        AppTextField(
                             title: "CARBS/SERVING",
                             text: $viewModel.servingCarbs,
                             icon: "leaf",
-                            placeholder: "0.5"
+                            placeholder: "0.5",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                         
-                        CompactTextField(
+                        AppTextField(
                             title: "FAT/SERVING",
                             text: $viewModel.servingFat,
                             icon: "drop",
-                            placeholder: "5"
+                            placeholder: "5",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                     }
                     
                     HStack(spacing: 12) {
-                        CompactTextField(
+                        AppTextField(
                             title: "FIBER/SERVING",
                             text: $viewModel.servingFiber,
                             icon: "scissors",
-                            placeholder: "0"
+                            placeholder: "0",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                         
-                        CompactTextField(
+                        AppTextField(
                             title: "SUGAR/SERVING",
                             text: $viewModel.servingSugar,
                             icon: "cube.transparent",
-                            placeholder: "0.4"
+                            placeholder: "0.4",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                     }
                 } else {
                     HStack(spacing: 12) {
-                        CompactTextField(
+                        AppTextField(
                             title: "CARBS/100G",
                             text: $viewModel.carbsPer100g,
                             icon: "leaf",
-                            placeholder: "0"
+                            placeholder: "0",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                         
-                        CompactTextField(
+                        AppTextField(
                             title: "FAT/100G",
                             text: $viewModel.fatPer100g,
                             icon: "drop",
-                            placeholder: "3.6"
+                            placeholder: "3.6",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                     }
                     
                     HStack(spacing: 12) {
-                        CompactTextField(
+                        AppTextField(
                             title: "FIBER/100G",
                             text: $viewModel.fiberPer100g,
                             icon: "scissors",
-                            placeholder: "2.5"
+                            placeholder: "2.5",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                         
-                        CompactTextField(
+                        AppTextField(
                             title: "SUGAR/100G",
                             text: $viewModel.sugarPer100g,
                             icon: "cube.transparent",
-                            placeholder: "4.7"
+                            placeholder: "4.7",
+                            keyboardType: .decimalPad,
+                            style: .compact
                         )
                     }
                 }
