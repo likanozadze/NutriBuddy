@@ -5,17 +5,6 @@
 //  Created by Lika Nozadze on 8/24/25.
 //
 
-//
-//import SwiftUI
-//
-//struct DailySummaryView: View {
-//    @ObservedObject var viewModel: ProgressViewModel
-//    
-//    var body: some View {
-//        ProgressCardView(viewModel: viewModel)
-//            .padding(.bottom, 8)
-//    }
-//}
 import SwiftUI
 
 struct DailySummaryView: View {
@@ -25,7 +14,8 @@ struct DailySummaryView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-          
+            ProgressCardView(viewModel: viewModel)
+                .padding(.bottom, 8)
             if healthKitManager.isAuthorized {
                 StepsCardView(
                     steps: viewModel.stepsToday,
@@ -34,9 +24,6 @@ struct DailySummaryView: View {
                     onRefresh: refreshSteps
                 )
             }
-        
-            ProgressCardView(viewModel: viewModel)
-                .padding(.bottom, 8)
         }
         .onAppear {
            
@@ -92,15 +79,6 @@ struct StepsCardView: View {
                 
                 Spacer()
                 
-                // Refresh button
-                Button(action: onRefresh) {
-                    Image(systemName: isRefreshing ? "arrow.clockwise" : "arrow.clockwise.circle")
-                        .font(.caption)
-                        .foregroundColor(.customBlue)
-                        .rotationEffect(.degrees(isRefreshing ? 360 : 0))
-                        .animation(isRefreshing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isRefreshing)
-                }
-                .disabled(isRefreshing)
             }
             
             HStack {

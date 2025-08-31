@@ -4,7 +4,6 @@
 //
 //  Created by Lika Nozadze on 8/23/25.
 //
-//
 
 import SwiftUI
 import SwiftData
@@ -22,18 +21,14 @@ struct FoodListView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     DailySummaryView(viewModel: progressViewModel)
-                    .padding(12)
-                    .background(Color.listBackground.opacity(0.5))
-                    .cornerRadius(12)
                     
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
                         selectedDate: foodListViewModel.selectedDate
                     )
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
             }
+            .padding(.horizontal, 16)
             .scrollIndicators(.hidden)
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
@@ -79,7 +74,6 @@ struct FoodListView: View {
                 print("Selected date changed: \(foodListViewModel.selectedDate)")
                 updateProgressData()
             }
-            
             .onChange(of: healthKitManager.isAuthorized) { _, isAuthorized in
                 if isAuthorized {
                     print("HealthKit authorized, fetching steps")
@@ -124,7 +118,6 @@ struct FoodListView: View {
             profile: foodListViewModel.currentProfile
         )
         
-     
         if Calendar.current.isDateInToday(foodListViewModel.selectedDate) {
             print("Fetching steps for today")
             healthKitManager.fetchTodayStepsWithCaching { steps in
@@ -132,7 +125,6 @@ struct FoodListView: View {
                 progressViewModel.stepsToday = Int(steps)
             }
         } else {
-            
             progressViewModel.stepsToday = 0
         }
     }

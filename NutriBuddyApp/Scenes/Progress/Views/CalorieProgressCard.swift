@@ -84,13 +84,6 @@ struct CalorieProgressCard: View {
                         value: remainingCalories,
                         label: "Remaining"
                     )
-                    
-                    StepProgressRing(
-                        steps: steps,
-                        goal: stepGoal,
-                        ringColor: .customBlue
-                    )
-
                 }
             }
             .padding(20)
