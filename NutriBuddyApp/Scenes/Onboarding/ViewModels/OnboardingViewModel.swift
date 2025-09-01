@@ -7,94 +7,232 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
-@MainActor
-class OnboardingViewModel: ObservableObject {
-    @Published var currentStep = 0
-    @Published var age = ""
-    @Published var weight = ""
-    @Published var height = ""
-    @Published var selectedGender = Gender.male
-    @Published var selectedActivity = ActivityLevel.moderate
-    @Published var selectedGoal = WeightGoal.maintain
+// MARK: - Protocols (Dependency Inversion Principle)
+
+protocol ValidationService {
+    func validateAge(_ age: String) -> Bool
+    func validateWeight(_ weight: String) -> Bool
+    func validateHeight(_ height: String) -> Bool
+}
+
+protocol CalorieCalculationService {
+    func calculateDailyCalories(for profile: UserProfileData) -> Int?
+}
+
+protocol ProfilePersistenceService {
+    func saveProfile(_ profile: UserProfileData, context: ModelContext) throws
+}
+
+protocol OnboardingNavigationService {
+    func canProceedFromStep(_ step: Int, with data: OnboardingData) -> Bool
+    func nextStep(from currentStep: Int) -> Int
+    func previousStep(from currentStep: Int) -> Int
+}
+
+// MARK: - Data Models
+
+struct OnboardingData {
+    var age: String = ""
+    var weight: String = ""
+    var height: String = ""
+    var selectedGender: Gender = .female
+    var selectedActivity: ActivityLevel = .moderate
+    var selectedGoal: WeightGoal = .maintain
+}
+
+struct UserProfileData {
+    let age: Int
+    let weight: Double
+    let height: Int
+    let gender: Gender
+    let activityLevel: ActivityLevel
+    let goal: WeightGoal
+}
+
+// MARK: - Service Implementations
+
+class DefaultValidationService: ValidationService {
+    private let ageRange = 13...120
+    private let weightRange = 30.0...500.0
+    private let heightRange = 100...250
     
-
-    var isValidAge: Bool {
+    func validateAge(_ age: String) -> Bool {
         guard let ageInt = Int(age) else { return false }
-        return ageInt >= 13 && ageInt <= 120
+        return ageRange.contains(ageInt)
     }
     
-    var isValidWeight: Bool {
+    func validateWeight(_ weight: String) -> Bool {
         guard let weightDouble = Double(weight) else { return false }
-        return weightDouble >= 30 && weightDouble <= 500
+        return weightRange.contains(weightDouble)
     }
     
-    var isValidHeight: Bool {
+    func validateHeight(_ height: String) -> Bool {
         guard let heightInt = Int(height) else { return false }
-        return heightInt >= 100 && heightInt <= 250
+        return heightRange.contains(heightInt)
+    }
+}
+
+class DefaultCalorieCalculationService: CalorieCalculationService {
+    func calculateDailyCalories(for profile: UserProfileData) -> Int? {
+        let userProfile = UserProfile(
+            age: profile.age,
+            weight: profile.weight,
+            height: profile.height,
+            gender: profile.gender,
+            activityLevel: profile.activityLevel,
+            goal: profile.goal
+        )
+        return Int(userProfile.dailyCalorieTarget)
+    }
+}
+
+class DefaultProfilePersistenceService: ProfilePersistenceService {
+    func saveProfile(_ profile: UserProfileData, context: ModelContext) throws {
+        let userProfile = UserProfile(
+            age: profile.age,
+            weight: profile.weight,
+            height: profile.height,
+            gender: profile.gender,
+            activityLevel: profile.activityLevel,
+            goal: profile.goal
+        )
+        
+        context.insert(userProfile)
+        try context.save()
+    }
+}
+
+class DefaultOnboardingNavigationService: OnboardingNavigationService {
+    private let validationService: ValidationService
+    
+    init(validationService: ValidationService) {
+        self.validationService = validationService
     }
     
-    var canProceed: Bool {
-        switch currentStep {
+    func canProceedFromStep(_ step: Int, with data: OnboardingData) -> Bool {
+        switch step {
         case 0: return true
-        case 1: return isValidAge
-        case 2: return isValidWeight
-        case 3: return isValidHeight
+        case 1: return validationService.validateAge(data.age)
+        case 2: return validationService.validateWeight(data.weight)
+        case 3: return validationService.validateHeight(data.height)
         case 4, 5, 6: return true
         default: return false
         }
     }
     
-
-    func calculateDailyCalories() -> Int? {
-        guard let ageInt = Int(age),
-              let weightDouble = Double(weight),
-              let heightInt = Int(height) else { return nil }
-        
-        let tempProfile = UserProfile(
-            age: ageInt,
-            weight: weightDouble,
-            height: heightInt,
-            gender: selectedGender,
-            activityLevel: selectedActivity,
-            goal: selectedGoal
-        )
-        
-        return Int(tempProfile.dailyCalorieTarget)
+    func nextStep(from currentStep: Int) -> Int {
+        return min(currentStep + 1, 6)
     }
     
-    func saveProfile(context: ModelContext, onComplete: () -> Void) {
-        guard let ageInt = Int(age),
-              let weightDouble = Double(weight),
-              let heightInt = Int(height) else {
-            print("Invalid profile data")
-            return
-        }
-        
-        let profile = UserProfile(
-            age: ageInt,
-            weight: weightDouble,
-            height: heightInt,
-            gender: selectedGender,
-            activityLevel: selectedActivity,
-            goal: selectedGoal
-        )
-        
-        do {
-            context.insert(profile)
-            try context.save()
-            onComplete()
-        } catch {
-            print("Failed to save profile: \(error)")
+    func previousStep(from currentStep: Int) -> Int {
+        return max(currentStep - 1, 0)
+    }
+}
+
+// MARK: - ViewModel
+
+@MainActor
+class OnboardingViewModel: ObservableObject {
+    
+    // MARK: - Published Properties
+    @Published var currentStep = 0
+    @Published var onboardingData = OnboardingData()
+    @Published var calculatedCalories: Int?
+    @Published var errorMessage: String?
+    
+    // MARK: - Services (Dependency Injection)
+    private let validationService: ValidationService
+    private let calorieCalculationService: CalorieCalculationService
+    private let persistenceService: ProfilePersistenceService
+    private let navigationService: OnboardingNavigationService
+    
+    // MARK: - Computed Properties
+    var canProceed: Bool {
+        navigationService.canProceedFromStep(currentStep, with: onboardingData)
+    }
+    
+    var isLastStep: Bool {
+        currentStep == 6
+    }
+    
+    var stepTitle: String {
+        switch currentStep {
+        case 0: return "Welcome"
+        case 1...5: return "About you"
+        default: return "Complete"
         }
     }
     
-
+    // MARK: - Initialization
+    init(
+        validationService: ValidationService = DefaultValidationService(),
+        calorieCalculationService: CalorieCalculationService = DefaultCalorieCalculationService(),
+        persistenceService: ProfilePersistenceService = DefaultProfilePersistenceService(),
+        navigationService: OnboardingNavigationService? = nil
+    ) {
+        self.validationService = validationService
+        self.calorieCalculationService = calorieCalculationService
+        self.persistenceService = persistenceService
+        self.navigationService = navigationService ?? DefaultOnboardingNavigationService(
+            validationService: validationService
+        )
+    }
+    
+    // MARK: - Public Methods
     func nextStep() {
-        currentStep += 1
+        let newStep = navigationService.nextStep(from: currentStep)
+        currentStep = newStep
+        
+        if isLastStep {
+            updateCalculatedCalories()
+        }
     }
     
     func previousStep() {
-        currentStep -= 1
+        currentStep = navigationService.previousStep(from: currentStep)
+    }
+    
+    func saveProfile(context: ModelContext, onComplete: @escaping () -> Void) {
+        guard let profileData = createUserProfileData() else {
+            errorMessage = "Invalid profile data"
+            return
+        }
+        
+        do {
+            try persistenceService.saveProfile(profileData, context: context)
+            onComplete()
+        } catch {
+            errorMessage = "Failed to save profile: \(error.localizedDescription)"
+        }
+    }
+    
+    // MARK: - Private Methods
+    private func createUserProfileData() -> UserProfileData? {
+        guard let age = Int(onboardingData.age),
+              let weight = Double(onboardingData.weight),
+              let height = Int(onboardingData.height) else {
+            return nil
+        }
+        
+        return UserProfileData(
+            age: age,
+            weight: weight,
+            height: height,
+            gender: onboardingData.selectedGender,
+            activityLevel: onboardingData.selectedActivity,
+            goal: onboardingData.selectedGoal
+        )
+    }
+    
+    private func updateCalculatedCalories() {
+        guard let profileData = createUserProfileData() else {
+            calculatedCalories = nil
+            return
+        }
+        
+        calculatedCalories = calorieCalculationService.calculateDailyCalories(for: profileData)
     }
 }
+

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+// MARK: - Updated OnboardingView
 
 struct OnboardingView: View {
     @Environment(\.modelContext) private var context
@@ -16,291 +17,491 @@ struct OnboardingView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Spacer()
-                switch viewModel.currentStep {
-                case 0: welcomeStep
-                case 1: ageStep
-                case 2: weightStep
-                case 3: heightStep
-                case 4: genderActivityStep
-                case 5: goalStep
-                default: completionStep
-                }
+            ZStack {
+                LinearGradient(gradient: Gradient(colors: [.gradientStart, .gradientEnd]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .ignoresSafeArea()
                 
-                Spacer()
-                
-                HStack {
-                    if viewModel.currentStep > 0 {
-                        Button("Back") {
-                            viewModel.previousStep()
+                VStack(spacing: 0) {
+                    progressBar
+                    
+                    ScrollView {
+                        VStack(spacing: 40) {
+                            stepContent
                         }
-                        .buttonStyle(.bordered)
-                        .tint(.customBlue)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 30)
                     }
                     
-                    Spacer()
-                    
-                    Button(viewModel.currentStep == 6 ? "Complete Setup" : "Next") {
-                        if viewModel.currentStep == 6 {
-                            viewModel.saveProfile(context: context, onComplete: onComplete)
-                        } else {
-                            viewModel.nextStep()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.customBlue)
-                    .disabled(!viewModel.canProceed)
+                    bottomNavigation
                 }
-                .padding()
             }
         }
         .navigationBarHidden(true)
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+    }
+    
+    // MARK: - Progress Bar
+    private var progressBar: some View {
+        VStack(spacing: 0) {
+            HStack {
+                if viewModel.currentStep > 0 {
+                    Button(action: { viewModel.previousStep() }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.gradientPrimaryText)
+                    }
+                    .padding(.leading, 20)
+                }
+                
+                Spacer()
+                
+                Text(viewModel.stepTitle)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gradientPrimaryText)
+                
+                Spacer()
+                
+                if viewModel.currentStep > 0 {
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                        .padding(.trailing, 20)
+                }
+            }
+            .padding(.vertical, 16)
+            
+            HStack(spacing: 8) {
+                ForEach(0..<7, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(index <= viewModel.currentStep ? Color.white : Color.white.opacity(0.3))
+                        .frame(height: 4)
+                        .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 1)
+        }
+    }
+    
+    // MARK: - Step Content
+    @ViewBuilder
+    private var stepContent: some View {
+        switch viewModel.currentStep {
+        case 0: welcomeStep
+        case 1: ageStep
+        case 2: weightStep
+        case 3: heightStep
+        case 4: genderActivityStep
+        case 5: goalStep
+        default: completionStep
+        }
+    }
+    
+    // MARK: - Bottom Navigation
+    private var bottomNavigation: some View {
+        VStack(spacing: 0) {
+            Divider().background(Color.white.opacity(0.2))
+            
+            Button(action: {
+                if viewModel.isLastStep {
+                    viewModel.saveProfile(context: context, onComplete: onComplete)
+                } else {
+                    viewModel.nextStep()
+                }
+            }) {
+                Text(viewModel.isLastStep ? "Complete Setup" : "Continue")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(viewModel.canProceed ? Color.customBlue : Color.white.opacity(0.3))
+                    )
+            }
+            .disabled(!viewModel.canProceed)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
+        }
     }
     
     // MARK: - Step Views
     
     private var welcomeStep: some View {
-        VStack(spacing: 30) {
-            Image(systemName: "person.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.customBlue)
+        VStack(spacing: 40) {
+            Spacer()
             
-            Text("Welcome to NutriBuddy!")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primaryText)
+            VStack(spacing: 24) {
+                Text("👋")
+                    .font(.system(size: 80))
+                
+                Text("What would you like to achieve?")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gradientPrimaryText)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                
+                Text("Let's set up your profile to calculate your personalized daily calorie goal")
+                    .font(.body)
+                    .foregroundColor(.gradientSecondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+            }
             
-            Text("Let's set up your profile to calculate your personalized daily calorie goal")
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.secondaryText)
-            
-            Text("This will only take a minute")
-                .font(.subheadline)
-                .foregroundColor(.secondaryText)
+            Spacer()
+            Spacer()
         }
-        .padding()
-
     }
     
     private var ageStep: some View {
-        VStack(spacing: 30) {
-            Image(systemName: "calendar")
-                .font(.system(size: 60))
-                .foregroundColor(.customBlue)
+        VStack(spacing: 40) {
+            VStack(spacing: 16) {
+                Text("What's your age?")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gradientPrimaryText)
+                    .multilineTextAlignment(.center)
+                
+                Text("We use this to calculate your metabolic rate")
+                    .font(.body)
+                    .foregroundColor(.gradientSecondaryText)
+                    .multilineTextAlignment(.center)
+            }
             
-            Text("What's your age?")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primaryText)
-            
-            TextField("Enter your age", text: $viewModel.age)
+            VStack(spacing: 20) {
+                TextField("", text: Binding(
+                    get: { viewModel.onboardingData.age },
+                    set: { viewModel.onboardingData.age = $0 }
+                ))
                 .keyboardType(.numberPad)
-                .textFieldStyle(.roundedBorder)
-                .font(.title3)
+                .font(.system(size: 48, weight: .bold))
+                .foregroundColor(.gradientPrimaryText)
                 .multilineTextAlignment(.center)
+                .padding(.vertical, 20)
+                .background(.white.opacity(0.15))
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(viewModel.onboardingData.age.isEmpty ? Color.clear : Color.white, lineWidth: 1.5)
+                )
+                
+                Text(viewModel.onboardingData.age.isEmpty ? "Enter your age" : "years old")
+                    .font(.title2)
+                    .foregroundColor(.gradientSecondaryText)
+            }
             
-            Text("We use this to calculate your metabolic rate")
-                .font(.caption)
-                .foregroundColor(.secondaryText)
+            Spacer()
         }
-        .padding()
-      
     }
     
     private var weightStep: some View {
-        VStack(spacing: 30) {
-            Image(systemName: "scalemass")
-                .font(.system(size: 60))
-                .foregroundColor(.customBlue)
-            
-            Text("What's your current weight?")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primaryText)
-            
-            HStack {
-                TextField("Weight", text: $viewModel.weight)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.title3)
-                    .multilineTextAlignment(.center)
+        VStack(spacing: 40) {
+            VStack(spacing: 16) {
+                Text("What's your current weight?")
+                    .font(.largeTitle).fontWeight(.bold)
+                    .foregroundColor(.gradientPrimaryText).multilineTextAlignment(.center)
                 
-                Text("kg")
-                    .font(.title3)
-                    .foregroundColor(.secondaryText)
+                Text("Don't worry, you can update this anytime")
+                    .font(.body).foregroundColor(.gradientSecondaryText).multilineTextAlignment(.center)
             }
             
-            Text("Don't worry, you can update this anytime")
-                .font(.caption)
-                .foregroundColor(.secondaryText)
+            HStack(alignment: .center, spacing: 8) {
+                TextField("", text: Binding(
+                    get: { viewModel.onboardingData.weight },
+                    set: { viewModel.onboardingData.weight = $0 }
+                ))
+                .keyboardType(.decimalPad)
+                .font(.system(size: 48, weight: .bold))
+                .foregroundColor(.gradientPrimaryText)
+                .multilineTextAlignment(.center)
+                
+                Text("kg")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(.gradientSecondaryText)
+                    .padding(.trailing, 12)
+            }
+            .padding(.vertical, 20)
+            .padding(.horizontal, 24)
+            .background(.white.opacity(0.15))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(viewModel.onboardingData.weight.isEmpty ? Color.clear : Color.white, lineWidth: 1.5)
+            )
+            
+            Spacer()
         }
-        .padding()
-    
     }
     
     private var heightStep: some View {
-        VStack(spacing: 30) {
-            Image(systemName: "ruler")
-                .font(.system(size: 60))
-                .foregroundColor(.customBlue)
-            
-            Text("What's your height?")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primaryText)
-            
-            HStack {
-                TextField("Height", text: $viewModel.height)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.title3)
-                    .multilineTextAlignment(.center)
+        VStack(spacing: 40) {
+            VStack(spacing: 16) {
+                Text("What's your height?")
+                    .font(.largeTitle).fontWeight(.bold)
+                    .foregroundColor(.gradientPrimaryText).multilineTextAlignment(.center)
                 
-                Text("cm")
-                    .font(.title3)
-                    .foregroundColor(.secondaryText)
+                Text("Used for accurate calorie calculation")
+                    .font(.body).foregroundColor(.gradientSecondaryText).multilineTextAlignment(.center)
             }
             
-            Text("Used for accurate calorie calculation")
-                .font(.caption)
-                .foregroundColor(.secondaryText)
+            HStack(alignment: .center, spacing: 8) {
+                TextField("", text: Binding(
+                    get: { viewModel.onboardingData.height },
+                    set: { viewModel.onboardingData.height = $0 }
+                ))
+                .keyboardType(.numberPad)
+                .font(.system(size: 48, weight: .bold))
+                .foregroundColor(.gradientPrimaryText)
+                .multilineTextAlignment(.center)
+                
+                Text("cm")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(.gradientSecondaryText)
+                    .padding(.trailing, 12)
+            }
+            .padding(.vertical, 20)
+            .padding(.horizontal, 24)
+            .background(.white.opacity(0.15))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(viewModel.onboardingData.height.isEmpty ? Color.clear : Color.white, lineWidth: 1.5)
+            )
+            
+            Spacer()
         }
-        .padding()
-      
     }
     
     private var genderActivityStep: some View {
-        VStack(spacing: 30) {
-            Image(systemName: "figure.run")
-                .font(.system(size: 60))
-                .foregroundColor(.customBlue)
-            
-            Text("Tell us about yourself")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primaryText)
-            
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Gender")
-                    .font(.headline)
-                    .foregroundColor(.primaryText)
+        VStack(spacing: 40) {
+            VStack(spacing: 16) {
+                Text("Tell us about yourself")
+                    .font(.largeTitle).fontWeight(.bold)
+                    .foregroundColor(.gradientPrimaryText).multilineTextAlignment(.center)
                 
-                Picker("Gender", selection: $viewModel.selectedGender) {
-                    ForEach(Gender.allCases, id: \.self) { gender in
-                        Text(gender.rawValue).tag(gender)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .background(Color.cardBackground)
-                
-                Text("Activity Level")
-                    .font(.headline)
-                    .foregroundColor(.primaryText)
-                
-                Picker("Activity Level", selection: $viewModel.selectedActivity) {
-                    ForEach(ActivityLevel.allCases, id: \.self) { activity in
-                        Text(activity.rawValue).tag(activity)
-                            .foregroundColor(.primaryText)
-                    }
-                }
-                .pickerStyle(.wheel)
-                .background(Color.cardBackground)
+                Text("This helps us calculate your daily needs")
+                    .font(.body).foregroundColor(.gradientSecondaryText).multilineTextAlignment(.center)
             }
+            
+            VStack(spacing: 32) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Gender")
+                        .font(.title2).fontWeight(.semibold)
+                        .foregroundColor(.gradientPrimaryText)
+                    
+                    HStack(spacing: 12) {
+                        ForEach(Gender.allCases, id: \.self) { gender in
+                            Button(action: { viewModel.onboardingData.selectedGender = gender }) {
+                                VStack(spacing: 8) {
+                                    Text(gender == .male ? "👨" : "👩").font(.system(size: 32))
+                                    Text(gender.rawValue)
+                                        .font(.body).fontWeight(.medium)
+                                        .foregroundColor(.gradientPrimaryText)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 80)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(viewModel.onboardingData.selectedGender == gender ? .white.opacity(0.25) : .white.opacity(0.15))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(viewModel.onboardingData.selectedGender == gender ? .white : .clear, lineWidth: 1.5)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Activity Level")
+                        .font(.title2).fontWeight(.semibold)
+                        .foregroundColor(.gradientPrimaryText)
+                    
+                    VStack(spacing: 12) {
+                        ForEach(ActivityLevel.allCases, id: \.self) { activity in
+                            Button(action: { viewModel.onboardingData.selectedActivity = activity }) {
+                                HStack(spacing: 16) {
+                                    Text(activityIcon(for: activity)).font(.system(size: 24))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(activity.rawValue).font(.body).fontWeight(.medium).foregroundColor(.gradientPrimaryText)
+                                        Text(activityDescription(for: activity)).font(.caption).foregroundColor(.gradientSecondaryText)
+                                    }
+                                    Spacer()
+                                    if viewModel.onboardingData.selectedActivity == activity {
+                                        Image(systemName: "checkmark.circle.fill").foregroundColor(.white).font(.title3)
+                                    }
+                                }
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(viewModel.onboardingData.selectedActivity == activity ? .white.opacity(0.25) : .white.opacity(0.15))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(viewModel.onboardingData.selectedActivity == activity ? .white : .clear, lineWidth: 1.5)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+            Spacer()
         }
-        .padding()
     }
     
     private var goalStep: some View {
-        VStack(spacing: 30) {
-            Image(systemName: "target")
-                .font(.system(size: 60))
-                .foregroundColor(.customBlue)
+        VStack(spacing: 40) {
+            VStack(spacing: 16) {
+                Text("What would you like to achieve?")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gradientPrimaryText)
+                    .multilineTextAlignment(.center)
+                
+                Text("Choose your primary goal")
+                    .font(.body)
+                    .foregroundColor(.gradientSecondaryText)
+                    .multilineTextAlignment(.center)
+            }
             
-            Text("What's your goal?")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primaryText)
-            
-            VStack(alignment: .leading, spacing: 15) {
+            VStack(spacing: 16) {
                 ForEach(WeightGoal.allCases, id: \.self) { goal in
-                    Button(action: {
-                        viewModel.selectedGoal = goal
-                    }) {
-                        HStack {
-                            Image(systemName: viewModel.selectedGoal == goal ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(viewModel.selectedGoal == goal ? .customBlue : .secondaryText)
+                    Button(action: { viewModel.onboardingData.selectedGoal = goal }) {
+                        HStack(spacing: 16) {
+                            Text(goalIcon(for: goal))
+                                .font(.system(size: 32))
                             
-                            Text(goal.rawValue)
-                                .foregroundColor(.primaryText)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(goal.rawValue)
+                                    .font(.body)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.gradientPrimaryText)
+                                
+                                Text(goalDescription(for: goal))
+                                    .font(.caption)
+                                    .foregroundColor(.gradientSecondaryText)
+                            }
                             
                             Spacer()
+                            
+                            if viewModel.onboardingData.selectedGoal == goal {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.white)
+                                    .font(.title2)
+                            }
                         }
-                        .padding()
+                        .padding(20)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(viewModel.selectedGoal == goal ? Color.customBlue.opacity(0.1) : Color.cardBackground)
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(viewModel.onboardingData.selectedGoal == goal ? .white.opacity(0.25) : .white.opacity(0.15))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(viewModel.onboardingData.selectedGoal == goal ? .white : .clear, lineWidth: 1.5)
                         )
                     }
                     .buttonStyle(.plain)
                 }
             }
+            
+            Spacer()
         }
-        .padding()
     }
     
     private var completionStep: some View {
-        VStack(spacing: 30) {
-            completionHeader
-            calorieGoalCard
-            completionFooter
-        }
-        .padding()
-    }
-    
-    private var completionHeader: some View {
-        VStack(spacing: 15) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.customGreen)
+        VStack(spacing: 40) {
+            Spacer()
             
-            Text("All Set!")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primaryText)
-        }
-    }
-    
-    private var calorieGoalCard: some View {
-        Group {
-            if let calculatedCalories = viewModel.calculateDailyCalories() {
-                VStack(spacing: 10) {
-                    Text("Your daily calorie goal:")
-                        .font(.headline)
-                        .foregroundColor(.primaryText)
-                    
-                    Text("\(calculatedCalories) kcal")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(.customBlue)
-                    
-                    Text("Based on your profile and \(viewModel.selectedGoal.rawValue.lowercased())")
-                        .font(.caption)
-                        .foregroundColor(.secondaryText)
-                        .multilineTextAlignment(.center)
+            VStack(spacing: 24) {
+                Text("🎉")
+                    .font(.system(size: 80))
+                
+                Text("All Set!")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gradientPrimaryText)
+                
+                if let calculatedCalories = viewModel.calculatedCalories {
+                    VStack(spacing: 16) {
+                        Text("Your daily calorie goal:")
+                            .font(.headline)
+                            .foregroundColor(.gradientPrimaryText)
+                        
+                        Text("\(calculatedCalories)")
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundColor(.white)
+                        + Text(" kcal")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.gradientSecondaryText)
+                        
+                        Text("Based on your profile and \(viewModel.onboardingData.selectedGoal.rawValue.lowercased())")
+                            .font(.body)
+                            .foregroundColor(.gradientSecondaryText)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(.white.opacity(0.2))
+                    )
                 }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.customBlue.opacity(0.1))
-                )
+                
+                Text("You can always update your profile later")
+                    .font(.body)
+                    .foregroundColor(.gradientSecondaryText)
+                    .multilineTextAlignment(.center)
             }
+            
+            Spacer()
+            Spacer()
         }
     }
     
-    private var completionFooter: some View {
-        Text("You can always update your profile later")
-            .font(.caption)
-            .foregroundColor(.secondaryText)
+    // MARK: - Helper Functions
+    private func activityIcon(for activity: ActivityLevel) -> String {
+        switch activity {
+        case .sedentary: return "🪑"
+        case .light: return "🚶‍♀️"
+        case .moderate: return "🏃‍♀️"
+        case .very: return "🏋️‍♀️"
+        case .extra: return "🤸‍♀️"
+        }
+    }
+    
+    private func activityDescription(for activity: ActivityLevel) -> String {
+        switch activity {
+        case .sedentary: return "Little to no exercise"
+        case .light: return "Light exercise 1-3 days/week"
+        case .moderate: return "Moderate exercise 3-5 days/week"
+        case .very: return "Heavy exercise 6-7 days/week"
+        case .extra: return "Very heavy physical work"
+        }
+    }
+    
+    private func goalIcon(for goal: WeightGoal) -> String {
+        switch goal {
+        case .lose2, .lose1: return "🏃‍♀️"
+        case .maintain: return "📏"
+        case .gain1, .gain2: return "💪"
+        }
+    }
+    
+    private func goalDescription(for goal: WeightGoal) -> String {
+        switch goal {
+        case .lose2: return "Lose 1 kg per week"
+        case .lose1: return "Lose 0.5 kg per week"
+        case .maintain: return "Stay in shape"
+        case .gain1: return "Gain 0.5 kg per week"
+        case .gain2: return "Gain 1 kg per week"
+        }
     }
 }
