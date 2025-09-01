@@ -19,11 +19,11 @@ struct FoodListSection: View {
            
             HStack {
                 HStack(spacing: 8) {
-                    Image(systemName: "fork.knife")
-                        .foregroundColor(.customOrange)
+                    Image(systemName: "list.clipboard")
+                        .foregroundColor(.calorieCardButtonBlue)
                         .font(.title3)
                         .frame(width: 28, height: 28)
-                        .background(Circle().fill(Color.customOrange.opacity(0.1)))
+                    
                     
                     Text("Food log")
                         .font(.title3)
@@ -61,7 +61,8 @@ struct FoodListSection: View {
                     .foregroundColor(Color.appBackground)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.customOrange)
+                   // .background(Color.customOrange)
+                    .background(Color.calorieCardButtonBlue)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
               

@@ -99,3 +99,8 @@ extension View {
             .cornerRadius(8)
     }
 }
+
+extension Color {
+    static let calorieCardButtonBlue = Color.gradientStart
+}
+
