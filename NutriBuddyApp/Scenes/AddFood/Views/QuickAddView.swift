@@ -22,7 +22,7 @@ struct QuickAddView: View {
                 EmptyQuickAddView()
             } else {
                 VStack(spacing: 12) {
-                    // Search Bar
+                    
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.secondary)
@@ -54,7 +54,9 @@ struct QuickAddView: View {
         }
         .background(Color.appBackground)
         .onAppear {
-            viewModel.loadFoodTemplates()
+            Task {
+                await viewModel.loadFoodTemplates()
+            }
         }
     }
 }

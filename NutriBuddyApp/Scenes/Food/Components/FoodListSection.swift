@@ -5,18 +5,19 @@
 //  Created by Lika Nozadze on 8/24/25.
 //
 
+
 import SwiftUI
 import SwiftData
 
 struct FoodListSection: View {
     let foods: [FoodEntry]
     let selectedDate: Date
+    let onDelete: (FoodEntry) -> Void
     @Environment(\.modelContext) private var context
     @State private var showingAddFood = false
     
     var body: some View {
         VStack(spacing: 16) {
-           
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "list.clipboard")
@@ -24,65 +25,42 @@ struct FoodListSection: View {
                         .font(.title3)
                         .frame(width: 28, height: 28)
                     
-                    
                     Text("Food log")
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundColor(.primaryText)
                 }
                 Spacer()
-                
                 Text("\(foods.count) items")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             
             if foods.isEmpty {
-                EmptyFoodLogView(onAddFood: {
-                    showingAddFood = true
-                })
-                .padding(.vertical, 32)
+                EmptyFoodLogView(onAddFood: { showingAddFood = true })
+                    .padding(.vertical, 32)
             } else {
                 LazyVStack(spacing: 8) {
                     ForEach(foods, id: \.id) { food in
-                        FoodItemCard(food: food, onDelete: {
-                            deleteFoodItem(food)
-                        })
+                        FoodItemCard(food: food, onDelete: { onDelete(food) })
                     }
                 }
-                Button(action: {
-                    showingAddFood = true
-                }) {
+                Button(action: { showingAddFood = true }) {
                     HStack {
-                       
                         Text("Add Food")
                             .font(.system(size: 16, weight: .medium))
                     }
                     .foregroundColor(Color.appBackground)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                   // .background(Color.customOrange)
                     .background(Color.calorieCardButtonBlue)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-              
                 .padding(.bottom, 16)
             }
         }
         .sheet(isPresented: $showingAddFood) {
             AddFoodView(selectedDate: selectedDate, context: context)
-        }
-    }
-    
-    private func deleteFoodItem(_ food: FoodEntry) {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            context.delete(food)
-            
-            do {
-                try context.save()
-            } catch {
-                print("Failed to delete food: \(error)")
-            }
         }
     }
 }
@@ -95,7 +73,6 @@ struct FoodItemCard: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text(food.name)
                     .font(.headline)
@@ -111,9 +88,7 @@ struct FoodItemCard: View {
             
             Spacer()
             
-            Button(action: {
-                showingDeleteConfirmation = true
-            }) {
+            Button(action: { showingDeleteConfirmation = true }) {
                 Image(systemName: "trash")
                     .font(.system(size: 16))
                     .foregroundColor(.red.opacity(0.8))
@@ -129,9 +104,7 @@ struct FoodItemCard: View {
                 .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
         )
         .confirmationDialog("Delete Food Item", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
-                onDelete()
-            }
+            Button("Delete", role: .destructive) { onDelete() }
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Are you sure you want to delete \(food.name)?")
@@ -154,9 +127,7 @@ struct EmptyFoodLogView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Button(action: {
-                onAddFood()
-            }) {
+            Button(action: { onAddFood() }) {
                 VStack(spacing: 12) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 48))
@@ -181,8 +152,9 @@ struct EmptyFoodLogView: View {
     }
 }
 
+// MARK: - Helpers
 extension Double {
     var clean: String {
-        return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
+        return truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
     }
 }

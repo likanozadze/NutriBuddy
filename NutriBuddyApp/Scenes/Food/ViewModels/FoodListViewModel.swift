@@ -4,11 +4,12 @@
 //
 //  Created by Lika Nozadze on 8/24/25.
 //
-//
+
 import SwiftUI
 import SwiftData
 import Foundation
 
+// MARK: - FoodListViewModel
 @Observable
 class FoodListViewModel {
     var selectedDate = Date()
@@ -44,10 +45,13 @@ class FoodListViewModel {
     }
     
     // MARK: - Setup
-    func setup(allFoods: [FoodEntry], profiles: [UserProfile], context: ModelContext) {
-        self.allFoods = allFoods
-        self.profiles = profiles
+    func updateFoods(_ foods: [FoodEntry], context: ModelContext) {
+        self.allFoods = foods
         self.context = context
+    }
+    
+    func updateProfiles(_ profiles: [UserProfile]) {
+        self.profiles = profiles
     }
     
     // MARK: - Actions
@@ -55,12 +59,15 @@ class FoodListViewModel {
         selectedDate = Calendar.current.date(byAdding: .day, value: days, to: selectedDate) ?? selectedDate
     }
     
-    func deleteFoods(at offsets: IndexSet) {
+    func deleteFood(_ food: FoodEntry) {
         guard let context = context else { return }
-        
-        offsets.forEach { index in
-            context.delete(dailyFoods[index])
+        withAnimation(.easeInOut(duration: 0.3)) {
+            context.delete(food)
+            do {
+                try context.save()
+            } catch {
+                print("Failed to delete food: \(error)")
+            }
         }
-        try? context.save()
     }
 }

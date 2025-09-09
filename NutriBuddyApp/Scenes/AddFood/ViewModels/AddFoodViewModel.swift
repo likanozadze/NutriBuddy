@@ -154,17 +154,17 @@ final class AddFoodViewModel: ObservableObject {
     }
 
     // MARK: - Public Methods
-    func loadFoodTemplates() {
+    @MainActor
+    func loadFoodTemplates() async {
         do {
             let descriptor = FetchDescriptor<FoodEntry>()
             let allFoods = try context.fetch(descriptor)
-            uniqueFoodTemplates = generateFoodTemplates(from: allFoods)
+            self.uniqueFoodTemplates = await generateFoodTemplates(from: allFoods)
         } catch {
             print("Failed to load food templates: \(error)")
-            uniqueFoodTemplates = []
+            self.uniqueFoodTemplates = []
         }
     }
-    
     func getFilteredFoodTemplates(searchText: String) -> [RecentFood] {
         if searchText.isEmpty {
             return uniqueFoodTemplates
@@ -198,32 +198,31 @@ final class AddFoodViewModel: ObservableObject {
     }
     
     // MARK: - Private Methods
-    private func generateFoodTemplates(from foods: [FoodEntry]) -> [RecentFood] {
-        let grouped = Dictionary(grouping: foods) { food in
-            "\(food.name)-\(food.caloriesPer100g)-\(food.proteinPer100g)-\(food.carbsPer100g)-\(food.fatPer100g)"
-        }
-        
-        return grouped.compactMap { _, foods in
-            guard let first = foods.first else { return nil }
-            
-            let totalEntries = foods.count
-            let lastUsed = foods.max(by: { $0.date < $1.date })?.date ?? Date.distantPast
-            
-            return RecentFood(
-                name: first.name,
-                caloriesPer100g: first.caloriesPer100g,
-                proteinPer100g: first.proteinPer100g,
-                carbsPer100g: first.carbsPer100g,
-                fatPer100g: first.fatPer100g,
-                fiberPer100g: first.fiberPer100g,
-                sugarPer100g: first.sugarPer100g,
-                inputMode: first.inputMode,
-                servingSize: first.servingSize,
-                timesUsed: totalEntries,
-                lastUsed: lastUsed
-            )
-        }
-        .sorted { $0.lastUsed > $1.lastUsed }
+    private func generateFoodTemplates(from foods: [FoodEntry]) async -> [RecentFood] {
+        return await Task.detached {
+            let grouped = Dictionary(grouping: foods) { food in
+                "\(food.name)-\(food.caloriesPer100g)-\(food.proteinPer100g)-\(food.carbsPer100g)-\(food.fatPer100g)"
+            }
+            return grouped.compactMap { _, foods in
+                guard let first = foods.first else { return nil }
+                let totalEntries = foods.count
+                let lastUsed = foods.max(by: { $0.date < $1.date })?.date ?? .distantPast
+                return RecentFood(
+                    name: first.name,
+                    caloriesPer100g: first.caloriesPer100g,
+                    proteinPer100g: first.proteinPer100g,
+                    carbsPer100g: first.carbsPer100g,
+                    fatPer100g: first.fatPer100g,
+                    fiberPer100g: first.fiberPer100g,
+                    sugarPer100g: first.sugarPer100g,
+                    inputMode: first.inputMode,
+                    servingSize: first.servingSize,
+                    timesUsed: totalEntries,
+                    lastUsed: lastUsed
+                )
+            }
+            .sorted { $0.lastUsed > $1.lastUsed }
+        }.value
     }
     
     private func createFoodEntry() -> FoodEntry {

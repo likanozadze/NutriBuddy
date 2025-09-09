@@ -16,6 +16,7 @@ struct DailySummaryView: View {
         VStack(spacing: 12) {
             ProgressCardView(viewModel: viewModel)
                 .padding(.bottom, 8)
+            
             if healthKitManager.isAuthorized {
                 StepsCardView(
                     steps: viewModel.stepsToday,
@@ -26,32 +27,27 @@ struct DailySummaryView: View {
             }
         }
         .onAppear {
-           
-            if viewModel.stepsToday == 0 && healthKitManager.isAuthorized {
-                refreshSteps()
+            if healthKitManager.isAuthorized {
+                viewModel.refreshSteps(using: healthKitManager)
             }
         }
     }
     
     private func refreshSteps() {
         guard !isRefreshingSteps else { return }
-        
         withAnimation(.easeInOut(duration: 0.3)) {
             isRefreshingSteps = true
         }
         
-        healthKitManager.fetchTodayStepsWithCaching { [weak viewModel] steps in
-            viewModel?.stepsToday = Int(steps)
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isRefreshingSteps = false
-                }
+        viewModel.refreshSteps(using: healthKitManager, force: true)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isRefreshingSteps = false
             }
         }
     }
 }
-
 struct StepsCardView: View {
     let steps: Int
     let goal: Int

@@ -3,7 +3,6 @@
 //  NutriBuddyApp
 //
 //  Created by Lika Nozadze on 8/23/25.
-//
 
 import SwiftUI
 import SwiftData
@@ -16,6 +15,9 @@ struct FoodListView: View {
     @State private var progressViewModel = ProgressViewModel()
     @EnvironmentObject private var healthKitManager: HealthKitManager
     
+
+    @State private var progressUpdateTask: Task<Void, Never>?
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -24,7 +26,11 @@ struct FoodListView: View {
                     
                     FoodListSection(
                         foods: foodListViewModel.dailyFoods,
-                        selectedDate: foodListViewModel.selectedDate
+                        selectedDate: foodListViewModel.selectedDate,
+                        onDelete: { food in
+                            foodListViewModel.deleteFood(food)
+                            scheduleProgressUpdate()
+                        }
                     )
                 }
             }
@@ -37,6 +43,7 @@ struct FoodListView: View {
                     HStack {
                         Button {
                             foodListViewModel.navigateDate(by: -1)
+                            scheduleProgressUpdate()
                         } label: {
                             Image(systemName: "chevron.left")
                                 .font(.title3)
@@ -50,6 +57,7 @@ struct FoodListView: View {
                         
                         Button {
                             foodListViewModel.navigateDate(by: 1)
+                            scheduleProgressUpdate()
                         } label: {
                             Image(systemName: "chevron.right")
                                 .font(.title3)
@@ -60,72 +68,65 @@ struct FoodListView: View {
             }
             .onAppear {
                 print("FoodListView appeared")
-                setupViewModels()
+                refreshViewModelsFromQueries()
             }
             .onChange(of: allFoods) { _, _ in
-                print("AllFoods changed, updating view models")
-                setupViewModels()
+                print("AllFoods changed, updating foods")
+                foodListViewModel.updateFoods(allFoods, context: context)
+                scheduleProgressUpdate()
             }
             .onChange(of: profiles) { _, _ in
-                print("Profiles changed, updating view models")
-                setupViewModels()
+                print("Profiles changed, updating profiles")
+                foodListViewModel.updateProfiles(profiles)
+                scheduleProgressUpdate()
             }
             .onChange(of: foodListViewModel.selectedDate) { _, _ in
                 print("Selected date changed: \(foodListViewModel.selectedDate)")
-                updateProgressData()
+                scheduleProgressUpdate()
             }
             .onChange(of: healthKitManager.isAuthorized) { _, isAuthorized in
                 if isAuthorized {
                     print("HealthKit authorized, fetching steps")
-                    updateProgressData()
+                    progressViewModel.refreshSteps(using: healthKitManager, force: true)
                 }
             }
         }
     }
     
+    // MARK: - Date Text
     private var dateText: String {
-        let calendar = Calendar.current
-        let selectedDate = foodListViewModel.selectedDate
-        
-        if calendar.isDateInToday(selectedDate) {
-            return "Today"
-        } else if calendar.isDateInTomorrow(selectedDate) {
-            return "Tomorrow"
-        } else if calendar.isDateInYesterday(selectedDate) {
-            return "Yesterday"
-        } else {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MMM d, yyyy"
-            return formatter.string(from: selectedDate)
-        }
+        DateFormatter.dateLabel(for: foodListViewModel.selectedDate)
     }
     
-    private func setupViewModels() {
-        print("Setting up view models")
-        foodListViewModel.setup(allFoods: allFoods, profiles: profiles, context: context)
-        updateProgressData()
+    // MARK: - Helpers
+    @MainActor
+    private func refreshViewModelsFromQueries() {
+        foodListViewModel.updateFoods(allFoods, context: context)
+        foodListViewModel.updateProfiles(profiles)
+        scheduleProgressUpdate()
     }
     
-    private func updateProgressData() {
-        print("Updating progress data")
-        let dailyFoods = NutritionCalculator.filterFoodsForDate(
-            allFoods,
-            date: foodListViewModel.selectedDate
-        )
+    
+    private func scheduleProgressUpdate() {
+        progressUpdateTask?.cancel()
         
-        progressViewModel.updateData(
-            foods: dailyFoods,
-            profile: foodListViewModel.currentProfile
-        )
+        let currentDate = foodListViewModel.selectedDate
+        let foodsSnapshot = allFoods
+        let profile = foodListViewModel.currentProfile
         
-        if Calendar.current.isDateInToday(foodListViewModel.selectedDate) {
-            print("Fetching steps for today")
-            healthKitManager.fetchTodayStepsWithCaching { steps in
-                print("Received steps: \(steps)")
-                progressViewModel.stepsToday = Int(steps)
+        progressUpdateTask = Task { @MainActor in
+            let dailyFoods = await Task.detached(priority: .userInitiated) {
+                NutritionCalculator.filterFoodsForDate(foodsSnapshot, date: currentDate)
+            }.value
+            
+
+            progressViewModel.updateData(foods: dailyFoods, profile: profile)
+            
+            if Calendar.current.isDateInToday(currentDate) {
+                progressViewModel.refreshSteps(using: healthKitManager)
+            } else {
+                progressViewModel.stepsToday = 0
             }
-        } else {
-            progressViewModel.stepsToday = 0
         }
     }
 }
