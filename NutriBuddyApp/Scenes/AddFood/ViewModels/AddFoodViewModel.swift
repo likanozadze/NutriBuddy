@@ -4,7 +4,7 @@
 //
 //  Created by Lika Nozadze on 8/27/25.
 //
-
+//
 import SwiftUI
 import SwiftData
 
@@ -50,9 +50,12 @@ final class AddFoodViewModel: ObservableObject {
     @Published var grams = ""
     
     @Published var uniqueFoodTemplates: [RecentFood] = []
+    @Published var searchResults: [FoodSearchResult] = []
+    @Published var isSearching = false
 
     let selectedDate: Date
     private var context: ModelContext
+    private let foodSearchService = FoodSearchService()
     
     init(selectedDate: Date, context: ModelContext) {
         self.selectedDate = selectedDate
@@ -165,6 +168,35 @@ final class AddFoodViewModel: ObservableObject {
             self.uniqueFoodTemplates = []
         }
     }
+    
+    func searchFoods(searchText: String) async {
+        if searchText.isEmpty {
+            await MainActor.run {
+                searchResults = uniqueFoodTemplates.map { .local($0) }
+            }
+            return
+        }
+        
+        await MainActor.run {
+            isSearching = true
+        }
+        
+
+        let localResults = uniqueFoodTemplates
+            .filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+            .map { FoodSearchResult.local($0) }
+        
+        
+        let apiResults = await foodSearchService.searchFoods(query: searchText)
+            .map { FoodSearchResult.api($0) }
+        
+
+        await MainActor.run {
+            searchResults = localResults + apiResults
+            isSearching = false
+        }
+    }
+    
     func getFilteredFoodTemplates(searchText: String) -> [RecentFood] {
         if searchText.isEmpty {
             return uniqueFoodTemplates
@@ -187,6 +219,23 @@ final class AddFoodViewModel: ObservableObject {
             date: selectedDate,
             inputMode: template.inputMode,
             servingSize: template.servingSize
+        )
+        
+        saveFood(food)
+    }
+    
+    func addAPIFood(_ apiFood: APIFood, grams: Double) {
+        let food = FoodEntry(
+            name: apiFood.name,
+            caloriesPer100g: apiFood.caloriesPer100g,
+            proteinPer100g: apiFood.proteinPer100g,
+            carbsPer100g: apiFood.carbsPer100g,
+            fatPer100g: apiFood.fatPer100g,
+            fiberPer100g: apiFood.fiberPer100g,
+            sugarPer100g: apiFood.sugarPer100g,
+            grams: grams,
+            date: selectedDate,
+            inputMode: NutritionInputMode.grams.rawValue
         )
         
         saveFood(food)

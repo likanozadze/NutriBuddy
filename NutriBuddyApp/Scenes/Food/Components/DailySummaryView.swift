@@ -55,9 +55,12 @@ struct StepsCardView: View {
     let onRefresh: () -> Void
     
     private var progress: Double {
-        guard goal > 0 else { return 0 }
-        return min(1.0, Double(steps) / Double(goal))
+        let safeGoal = max(1, goal)
+        let safeSteps = max(0, steps)
+        let value = Double(safeSteps) / Double(safeGoal)
+        return min(1.0, max(0.0, value))
     }
+
     
     var body: some View {
         VStack(spacing: 12) {
@@ -120,5 +123,10 @@ struct StepsCardView: View {
         .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+    }
+}
+extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        min(max(self, limits.lowerBound), limits.upperBound)
     }
 }
