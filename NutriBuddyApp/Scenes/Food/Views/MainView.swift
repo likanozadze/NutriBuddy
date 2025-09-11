@@ -20,67 +20,88 @@ struct MainView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(20) {
-                List {
-                    Section {
-                        DailySummaryView(viewModel: progressViewModel)
-                    }
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.appBackground)
-
-                    if !foodListViewModel.dailyFoods.isEmpty {
-                        Section {
-                            FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
-                                .listRowInsets(EdgeInsets())
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.appBackground)
-
-                            ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
-                                FoodItemCard(food: food)
-                                    .listRowInsets(EdgeInsets())
-                                    .listRowSeparator(.hidden)
-                                    .listRowBackground(Color.appBackground)
-                            }
-                            .onDelete { indexSet in
-                                indexSet.forEach { index in
-                                    let food = foodListViewModel.dailyFoods[index]
-                                    foodListViewModel.deleteFood(food)
-                                    scheduleProgressUpdate()
+            ScrollView {
+                VStack(spacing: 20) {
+                
+                    VStack(spacing: 16) {
+                        if progressViewModel.hasProfile {
+                            CalorieProgressCard(
+                                viewModel: progressViewModel.calorieProgressViewModel,
+                                steps: progressViewModel.stepsToday,
+                                stepGoal: progressViewModel.stepGoal
+                            )
+                            
+                            LazyVGrid(columns: macroColumns, spacing: 16) {
+                                ForEach(progressViewModel.macroProgressViewModel.macros, id: \.title) { macro in
+                                    MacroProgressCard(macro: macro)
                                 }
                             }
+                            
+                            if healthKitManager.isAuthorized {
+                                StepsCardView(
+                                    steps: progressViewModel.stepsToday,
+                                    goal: progressViewModel.stepGoal,
+                                    isRefreshing: false,
+                                    onRefresh: {
+                                        progressViewModel.refreshSteps(using: healthKitManager, force: true)
+                                    }
+                                )
+                            }
+                        } else {
+                            NoProfileCard()
                         }
-                    } else {
-                        Section {
+                    }
+                    
+                  
+                    VStack(spacing: 12) {
+                        if !foodListViewModel.dailyFoods.isEmpty {
+                            FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
+                            
+                            List {
+                                ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
+                                    FoodItemCard(food: food)
+                                        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                                        .listRowSeparator(.hidden)
+                                        .listRowBackground(Color.clear)
+                                }
+                                .onDelete { indexSet in
+                                    indexSet.forEach { index in
+                                        let food = foodListViewModel.dailyFoods[index]
+                                        withAnimation {
+                                            foodListViewModel.deleteFood(food)
+                                            scheduleProgressUpdate()
+                                        }
+                                    }
+                                }
+                            }
+                            .listStyle(.plain)
+                            .frame(height: CGFloat(foodListViewModel.dailyFoods.count * 70))
+                            .scrollDisabled(true)
+                            .background(Color.clear)
+                            
+                      
+                            Button(action: { showingAddFood = true }) {
+                                HStack {
+                                    Text("Add Food")
+                                        .font(.system(size: 16, weight: .medium))
+                                }
+                                .foregroundColor(Color.appBackground)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.calorieCardButtonBlue)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .padding(.top, 16)
+                        } else {
                             EmptyFoodLogView(onAddFood: { showingAddFood = true })
-                                .listRowInsets(EdgeInsets())
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.appBackground)
                         }
                     }
                 }
-                .listStyle(.plain)
-                .background(Color.appBackground)
-                .scrollContentBackground(.hidden)
-                
-                if !foodListViewModel.dailyFoods.isEmpty {
-                    Button(action: { showingAddFood = true }) {
-                        HStack {
-                            Text("Add Food")
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                        .foregroundColor(Color.appBackground)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.calorieCardButtonBlue)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .padding(.top, 16)
-                }
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
+            .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -94,32 +115,34 @@ struct MainView: View {
                 )
             }
             .onAppear {
-                print("FoodListView appeared")
                 refreshViewModelsFromQueries()
             }
             .onChange(of: allFoods) { _, _ in
-                print("AllFoods changed, updating foods")
                 foodListViewModel.updateFoods(allFoods, context: context)
                 scheduleProgressUpdate()
             }
             .onChange(of: profiles) { _, _ in
-                print("Profiles changed, updating profiles")
                 foodListViewModel.updateProfiles(profiles)
                 scheduleProgressUpdate()
             }
             .onChange(of: foodListViewModel.selectedDate) { _, _ in
-                print("Selected date changed: \(foodListViewModel.selectedDate)")
                 scheduleProgressUpdate()
             }
             .onChange(of: healthKitManager.isAuthorized) { _, isAuthorized in
                 if isAuthorized {
-                    print("HealthKit authorized, fetching steps")
                     progressViewModel.refreshSteps(using: healthKitManager, force: true)
                 }
             }
         }
     }
-  
+    
+    private var macroColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16)
+        ]
+    }
+    
     // MARK: - Date Navigation Bar
     private var dateNavigationBar: some View {
         HStack {
@@ -148,12 +171,10 @@ struct MainView: View {
         }
     }
     
-    // MARK: - Date Text
     private var dateText: String {
         DateFormatter.dateLabel(for: foodListViewModel.selectedDate)
     }
     
-    // MARK: - Helpers
     @MainActor
     private func refreshViewModelsFromQueries() {
         foodListViewModel.updateFoods(allFoods, context: context)
@@ -184,43 +205,3 @@ struct MainView: View {
     }
 }
 
-//struct FoodLogHeaderCard: View {
-//    var foodCount: Int
-//    
-//    var body: some View {
-//        HStack() {
-//            Text("Food Log")
-//                .font(.headline)
-//                .foregroundColor(.primary)
-//            Spacer()
-//            Text("\(foodCount) item\(foodCount == 1 ? "" : "s") logged")
-//                .font(.caption)
-//                .foregroundColor(.secondary)
-//        }
-//        .padding(.vertical, 10)
-//        .padding(.horizontal, 10)
-//        .cornerRadius(12)
-//        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-//    }
-//}
-struct FoodLogHeaderCard: View {
-    var foodCount: Int
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Food Log")
-                    .font(.headline)
-                    .foregroundColor(.primaryText)
-                Spacer()
-                Text("\(foodCount) item\(foodCount == 1 ? "" : "s") logged")
-                    .font(.caption)
-                    .foregroundColor(.secondaryText)
-            }
-        }
-        .padding(16)
-        .background(Color.cardBackground)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-    }
-}

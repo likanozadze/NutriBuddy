@@ -4,50 +4,8 @@
 //
 //  Created by Lika Nozadze on 8/24/25.
 //
-
+//
 import SwiftUI
-
-struct DailySummaryView: View {
-    @ObservedObject var viewModel: ProgressViewModel
-    @EnvironmentObject private var healthKitManager: HealthKitManager
-    @State private var isRefreshingSteps = false
-    
-    var body: some View {
-        VStack {
-            ProgressCardView(viewModel: viewModel)
-                .padding(.bottom, 8)
-            
-            if healthKitManager.isAuthorized {
-                StepsCardView(
-                    steps: viewModel.stepsToday,
-                    goal: viewModel.stepGoal,
-                    isRefreshing: isRefreshingSteps,
-                    onRefresh: refreshSteps
-                )
-            }
-        }
-        .onAppear {
-            if healthKitManager.isAuthorized {
-                viewModel.refreshSteps(using: healthKitManager)
-            }
-        }
-    }
-    
-    private func refreshSteps() {
-        guard !isRefreshingSteps else { return }
-        withAnimation(.easeInOut(duration: 0.3)) {
-            isRefreshingSteps = true
-        }
-        
-        viewModel.refreshSteps(using: healthKitManager, force: true)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                isRefreshingSteps = false
-            }
-        }
-    }
-}
 
 struct StepsCardView: View {
     let steps: Int
