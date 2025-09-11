@@ -5,70 +5,34 @@
 //  Created by Lika Nozadze on 8/24/25.
 //
 
-
 import SwiftUI
 import SwiftData
 
 struct FoodListSection: View {
     let foods: [FoodEntry]
-    let selectedDate: Date
     let onDelete: (FoodEntry) -> Void
-    @Environment(\.modelContext) private var context
-    @State private var showingAddFood = false
     
     var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "list.clipboard")
-                        .foregroundColor(.calorieCardButtonBlue)
-                        .font(.title3)
-                        .frame(width: 28, height: 28)
-                    
-                    Text("Food log")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primaryText)
+        List {
+                ForEach(foods, id: \.id) { food in
+                    FoodItemCard(food: food)
+                        .listRowSeparator(.hidden)
                 }
-                Spacer()
-                Text("\(foods.count) items")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            if foods.isEmpty {
-                EmptyFoodLogView(onAddFood: { showingAddFood = true })
-                    .padding(.vertical, 32)
-            } else {
-                LazyVStack(spacing: 8) {
-                    ForEach(foods, id: \.id) { food in
-                        FoodItemCard(food: food, onDelete: { onDelete(food) })
+                .onDelete { indexSet in
+                    indexSet.forEach { index in
+                        let food = foods[index]
+                        onDelete(food)
                     }
                 }
-                Button(action: { showingAddFood = true }) {
-                    HStack {
-                        Text("Add Food")
-                            .font(.system(size: 16, weight: .medium))
-                    }
-                    .foregroundColor(Color.appBackground)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.calorieCardButtonBlue)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .padding(.bottom, 16)
             }
-        }
-        .sheet(isPresented: $showingAddFood) {
-            AddFoodView(selectedDate: selectedDate, context: context)
-        }
+        
+        .listStyle(.plain)
+        .scrollDisabled(true)
     }
 }
 
 struct FoodItemCard: View {
     let food: FoodEntry
-    let onDelete: () -> Void
-    @State private var showingDeleteConfirmation = false
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -85,17 +49,7 @@ struct FoodItemCard: View {
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
-            
             Spacer()
-            
-            Button(action: { showingDeleteConfirmation = true }) {
-                Image(systemName: "trash")
-                    .font(.system(size: 16))
-                    .foregroundColor(.red.opacity(0.8))
-                    .frame(width: 32, height: 32)
-                    .background(Color.red.opacity(colorScheme == .dark ? 0.2 : 0.1))
-                    .clipShape(Circle())
-            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -103,12 +57,6 @@ struct FoodItemCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
         )
-        .confirmationDialog("Delete Food Item", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) { onDelete() }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("Are you sure you want to delete \(food.name)?")
-        }
     }
     
     private var amountDisplayText: String {
@@ -121,7 +69,6 @@ struct FoodItemCard: View {
         }
     }
 }
-
 struct EmptyFoodLogView: View {
     let onAddFood: () -> Void
     
