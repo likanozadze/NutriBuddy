@@ -9,13 +9,11 @@ import SwiftUI
 
 struct CalorieProgressCard: View {
     @ObservedObject var viewModel: CalorieProgressViewModel
-    
     var steps: Int
     var stepGoal: Int
     
     var body: some View {
         ZStack {
-            
             LinearGradient(
                 gradient: Gradient(colors: gradientColors),
                 startPoint: .topLeading,
@@ -61,7 +59,6 @@ struct CalorieProgressCard: View {
                             .foregroundColor(.gradientSecondaryText)
                     }
                     
-                    
                     if isWarningZone {
                         HStack {
                             Image(systemName: warningIcon)
@@ -86,7 +83,7 @@ struct CalorieProgressCard: View {
                     )
                 }
             }
-            .padding(20)
+            .padding(20) 
         }
         .onAppear {
             if isOvereating {

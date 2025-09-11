@@ -7,7 +7,7 @@
 import SwiftUI
 import SwiftData
 
-struct FoodListView: View {
+struct MainView: View {
     @Query private var allFoods: [FoodEntry]
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var context
@@ -20,21 +20,27 @@ struct FoodListView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
+            VStack(20) {
                 List {
                     Section {
                         DailySummaryView(viewModel: progressViewModel)
                     }
-                    
-                    Section {
-                        if foodListViewModel.dailyFoods.isEmpty {
-                            EmptyFoodLogView(onAddFood: { showingAddFood = true })
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.appBackground)
+
+                    if !foodListViewModel.dailyFoods.isEmpty {
+                        Section {
+                            FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
+                                .listRowInsets(EdgeInsets())
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.appBackground)
-                        } else {
+
                             ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
                                 FoodItemCard(food: food)
+                                    .listRowInsets(EdgeInsets())
                                     .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.appBackground)
                             }
                             .onDelete { indexSet in
                                 indexSet.forEach { index in
@@ -44,12 +50,19 @@ struct FoodListView: View {
                                 }
                             }
                         }
+                    } else {
+                        Section {
+                            EmptyFoodLogView(onAddFood: { showingAddFood = true })
+                                .listRowInsets(EdgeInsets())
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.appBackground)
+                        }
                     }
                 }
                 .listStyle(.plain)
                 .background(Color.appBackground)
+                .scrollContentBackground(.hidden)
                 
-    
                 if !foodListViewModel.dailyFoods.isEmpty {
                     Button(action: { showingAddFood = true }) {
                         HStack {
@@ -62,10 +75,12 @@ struct FoodListView: View {
                         .background(Color.calorieCardButtonBlue)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 16)
+                    .padding(.top, 16)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -104,7 +119,7 @@ struct FoodListView: View {
             }
         }
     }
-    
+  
     // MARK: - Date Navigation Bar
     private var dateNavigationBar: some View {
         HStack {
@@ -166,5 +181,46 @@ struct FoodListView: View {
                 progressViewModel.stepsToday = 0
             }
         }
+    }
+}
+
+//struct FoodLogHeaderCard: View {
+//    var foodCount: Int
+//    
+//    var body: some View {
+//        HStack() {
+//            Text("Food Log")
+//                .font(.headline)
+//                .foregroundColor(.primary)
+//            Spacer()
+//            Text("\(foodCount) item\(foodCount == 1 ? "" : "s") logged")
+//                .font(.caption)
+//                .foregroundColor(.secondary)
+//        }
+//        .padding(.vertical, 10)
+//        .padding(.horizontal, 10)
+//        .cornerRadius(12)
+//        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+//    }
+//}
+struct FoodLogHeaderCard: View {
+    var foodCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Food Log")
+                    .font(.headline)
+                    .foregroundColor(.primaryText)
+                Spacer()
+                Text("\(foodCount) item\(foodCount == 1 ? "" : "s") logged")
+                    .font(.caption)
+                    .foregroundColor(.secondaryText)
+            }
+        }
+        .padding(16)
+        .background(Color.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
 }

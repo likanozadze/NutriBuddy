@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct FoodListSection: View {
+struct FoodListView: View {
     let foods: [FoodEntry]
     let onDelete: (FoodEntry) -> Void
     
@@ -51,14 +51,14 @@ struct FoodItemCard: View {
             }
             Spacer()
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 10) 
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
         )
     }
-    
+       
     private var amountDisplayText: String {
         if food.isServingMode {
             let servingCount = food.servingsCount
@@ -69,6 +69,7 @@ struct FoodItemCard: View {
         }
     }
 }
+
 struct EmptyFoodLogView: View {
     let onAddFood: () -> Void
     

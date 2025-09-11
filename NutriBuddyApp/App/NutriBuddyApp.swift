@@ -34,7 +34,7 @@ struct MainAppView: View {
      
                 TabView {
                   
-                    FoodListView()
+                    MainView()
                         .tabItem {
                             Label("Food", systemImage: "list.bullet")
                         }

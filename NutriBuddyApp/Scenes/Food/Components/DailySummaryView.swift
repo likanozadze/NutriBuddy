@@ -13,7 +13,7 @@ struct DailySummaryView: View {
     @State private var isRefreshingSteps = false
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack {
             ProgressCardView(viewModel: viewModel)
                 .padding(.bottom, 8)
             
@@ -48,6 +48,7 @@ struct DailySummaryView: View {
         }
     }
 }
+
 struct StepsCardView: View {
     let steps: Int
     let goal: Int
@@ -60,7 +61,6 @@ struct StepsCardView: View {
         let value = Double(safeSteps) / Double(safeGoal)
         return min(1.0, max(0.0, value))
     }
-
     
     var body: some View {
         VStack(spacing: 12) {
@@ -77,7 +77,6 @@ struct StepsCardView: View {
                 }
                 
                 Spacer()
-                
             }
             
             HStack {
@@ -94,7 +93,6 @@ struct StepsCardView: View {
                 
                 Spacer()
                 
-               
                 ZStack {
                     Circle()
                         .stroke(Color.gray.opacity(0.2), lineWidth: 4)
@@ -119,12 +117,13 @@ struct StepsCardView: View {
                 }
             }
         }
-        .padding(16)
+        .padding(16) 
         .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
 }
+
 extension Comparable {
     func clamped(to limits: ClosedRange<Self>) -> Self {
         min(max(self, limits.lowerBound), limits.upperBound)
