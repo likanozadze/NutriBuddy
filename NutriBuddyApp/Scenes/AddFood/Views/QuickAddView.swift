@@ -308,6 +308,8 @@ struct PortionSelectionView: View {
                 selectedPortion: $selectedPortionType,
                 onDismiss: { showingPortionPicker = false }
             )
+            .presentationDetents([.medium, .large])
+               .presentationDragIndicator(.visible)
         }
     }
     
@@ -503,78 +505,93 @@ struct PortionSelectionView: View {
     }
 }
 
-// MARK: - MyFitnessPal Style Portion Picker
+
+// MARK: - Portion Picker View
 struct PortionPickerView: View {
     let portions: [PortionType]
     @Binding var selectedPortion: PortionType
     let onDismiss: () -> Void
-    
+
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(portions, id: \.self) { portion in
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("1 \(portion.displayName.lowercased())")
-                                .font(.body)
-                                .foregroundColor(.primary)
-                            
-                            if portion != .custom {
-                                Text("≈ \(portion.gramsEquivalent(for: APIFood(fdcId: 0, description: "", foodNutrients: [], dataType: nil, commonNames: nil, additionalDescriptions: nil)).formatted(.number.precision(.fractionLength(0...1))))g")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        if selectedPortion == portion {
-                            Image(systemName: "checkmark")
-                                .font(.body)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.customBlue)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedPortion = portion
-                        onDismiss()
-                    }
-                }
-                
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Custom weight")
-                            .font(.body)
-                            .foregroundColor(.primary)
-                        
-                        Text("Enter grams manually")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    if selectedPortion == .custom {
-                        Image(systemName: "checkmark")
-                            .font(.body)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.customBlue)
-                    }
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    selectedPortion = .custom
-                    onDismiss()
+        VStack(spacing: 0) {
+            HStack {
+                Text("Select Unit")
+                    .font(.headline)
+                    .padding()
+                Spacer()
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(.secondary)
+                        .padding()
                 }
             }
-            .navigationTitle("Select Unit")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Done") { onDismiss() })
+            .background(Color.appBackground)
+
+            Divider()
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(portions, id: \.self) { portion in
+                        PortionRowView(portion: portion, isSelected: selectedPortion == portion)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedPortion = portion
+                                onDismiss()
+                            }
+                    }
+   
+                    PortionRowView(portion: .custom, isSelected: selectedPortion == .custom)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedPortion = .custom
+                            onDismiss()
+                        }
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 16)
+            }
         }
+        .background(Color.appBackground)
+        .cornerRadius(20)
+        .shadow(radius: 5)
     }
 }
 
+
+struct PortionRowView: View {
+    let portion: PortionType
+    let isSelected: Bool
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(portion.displayName)
+                    .font(.body)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundColor(isSelected ? .customBlue : .primary)
+
+                if portion != .custom {
+                    Text("≈ \(portion.gramsEquivalent(for: APIFood(fdcId: 0, description: "", foodNutrients: [], dataType: nil, commonNames: nil, additionalDescriptions: nil)).formatted(.number.precision(.fractionLength(0...1))))g")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("Enter grams manually")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            Spacer()
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.customBlue)
+            }
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal)
+    }
+}
 // MARK: - Enhanced Portion Types
 enum PortionType: String, CaseIterable, Hashable {
     case piece = "piece"
