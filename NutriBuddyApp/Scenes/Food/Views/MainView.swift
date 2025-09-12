@@ -52,10 +52,8 @@ struct MainView: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                
                 Section {
                     if !foodListViewModel.dailyFoods.isEmpty {
-                       
                         FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
@@ -73,16 +71,25 @@ struct MainView: View {
                                     }
                                 }
                         }
-                    } else {
                         
+                        Color.clear
+                            .frame(height: 40)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                           
+                        
+                    } else {
                         EmptyFoodLogView(onAddFood: {
                         })
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     }
                 }
+                
             }
+
             .listStyle(.plain)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

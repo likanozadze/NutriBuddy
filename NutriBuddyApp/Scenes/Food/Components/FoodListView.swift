@@ -14,23 +14,25 @@ struct FoodListView: View {
     
     var body: some View {
         List {
-                ForEach(foods, id: \.id) { food in
-                    FoodItemCard(food: food)
-                        .listRowSeparator(.hidden)
-                }
-                .onDelete { indexSet in
-                    indexSet.forEach { index in
-                        let food = foods[index]
-                        onDelete(food)
-                    }
+            ForEach(foods, id: \.id) { food in
+                FoodItemCard(food: food)
+                    .listRowSeparator(.hidden)
+            }
+            .onDelete { indexSet in
+                indexSet.forEach { index in
+                    let food = foods[index]
+                    onDelete(food)
                 }
             }
-        
+            
+            Color.clear
+                .frame(height: 40)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets())
+        }
         .listStyle(.plain)
-       // .scrollDisabled(true)
     }
 }
-
 
 struct FoodItemCard: View {
     let food: FoodEntry
@@ -52,14 +54,13 @@ struct FoodItemCard: View {
             Spacer()
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
         )
     }
-       
-
+    
     private var amountDisplayText: String {
         if food.isServingMode {
             let servingCount = food.servingsCount
@@ -78,10 +79,6 @@ struct EmptyFoodLogView: View {
         VStack(spacing: 16) {
             Button(action: { onAddFood() }) {
                 VStack(spacing: 12) {
-//                    Image(systemName: "plus.circle.fill")
-//                        .font(.system(size: 48))
-//                        .foregroundColor(.customOrange.opacity(0.6))
-                    
                     VStack(spacing: 4) {
                         Text("No food logged yet")
                             .font(.headline)
@@ -95,13 +92,15 @@ struct EmptyFoodLogView: View {
                 }
             }
             .buttonStyle(.plain)
+            
+            Color.clear
+                .frame(height: 80)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
     }
 }
 
-// MARK: - Helpers
 extension Double {
     var clean: String {
         return truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
