@@ -13,24 +13,15 @@ struct FoodListView: View {
     let onDelete: (FoodEntry) -> Void
     
     var body: some View {
-        List {
-            ForEach(foods, id: \.id) { food in
-                FoodItemCard(food: food)
-                    .listRowSeparator(.hidden)
-            }
-            .onDelete { indexSet in
-                indexSet.forEach { index in
-                    let food = foods[index]
-                    onDelete(food)
+        ScrollView {
+            LazyVStack {
+                ForEach(foods, id: \.id) { food in
+                    FoodItemCard(food: food)
+                        }
                 }
-            }
             
-            Color.clear
-                .frame(height: 40)
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets())
+            .padding(.bottom, 40)
         }
-        .listStyle(.plain)
     }
 }
 
@@ -52,6 +43,7 @@ struct FoodItemCard: View {
             }
             Spacer()
         }
+        
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .background(

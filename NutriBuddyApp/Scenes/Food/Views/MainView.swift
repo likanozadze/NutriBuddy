@@ -19,8 +19,9 @@ struct MainView: View {
     
     var body: some View {
         NavigationStack {
-            List {
-                Section {
+            ScrollView {
+                LazyVStack(spacing: 16) {
+           
                     VStack(spacing: 16) {
                         if progressViewModel.hasProfile {
                             CalorieProgressCard(
@@ -49,47 +50,40 @@ struct MainView: View {
                             NoProfileCard()
                         }
                     }
-                }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                Section {
-                    if !foodListViewModel.dailyFoods.isEmpty {
-                        FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                        
-                        ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
-                            FoodItemCard(food: food)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
-                                .swipeActions(edge: .trailing) {
-                                    Button("Delete", role: .destructive) {
-                                        withAnimation {
-                                            foodListViewModel.deleteFood(food)
-                                            scheduleProgressUpdate()
-                                        }
-                                    }
-                                }
-                        }
-                        
-                        Color.clear
-                            .frame(height: 40)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                    
+                    VStack(spacing: 8) {
+                        if !foodListViewModel.dailyFoods.isEmpty {
+                            FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
+                            
                            
-                        
-                    } else {
-                        EmptyFoodLogView(onAddFood: {
-                        })
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+                            List {
+                                ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
+                                    FoodItemCard(food: food)
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
+                                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                        .swipeActions(edge: .trailing) {
+                                            Button("Delete", role: .destructive) {
+                                                withAnimation {
+                                                    foodListViewModel.deleteFood(food)
+                                                    scheduleProgressUpdate()
+                                                }
+                                            }
+                                        }
+                                }
+                            }
+                            .listStyle(.plain)
+                            .scrollDisabled(true)
+                            .frame(height: CGFloat(foodListViewModel.dailyFoods.count * 100))
+                        } else {
+                            EmptyFoodLogView(onAddFood: {
+                            })
+                        }
                     }
                 }
-                
+                .padding(.horizontal, 16)
             }
-
-            .listStyle(.plain)
-            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .scrollIndicators(.hidden)
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -119,6 +113,7 @@ struct MainView: View {
         }
     }
     
+
     private var macroColumns: [GridItem] {
         [
             GridItem(.flexible(), spacing: 16),
