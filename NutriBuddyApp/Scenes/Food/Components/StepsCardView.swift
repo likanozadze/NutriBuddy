@@ -76,9 +76,11 @@ struct StepsCardView: View {
             }
         }
         .padding(16) 
-        .background(Color.cardBackground)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.cardBackground)
+        )
+        
     }
 }
 

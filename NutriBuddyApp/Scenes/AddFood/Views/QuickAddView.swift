@@ -113,7 +113,7 @@ struct SearchBar: View {
 struct SearchResultCard: View {
     let result: FoodSearchResult
     let onTap: () -> Void
-    @Environment(\.colorScheme) private var colorScheme
+  
     
     var body: some View {
         Button(action: onTap) {
@@ -180,9 +180,8 @@ struct SearchResultCard: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.cardBackground)
             )
         }
         .buttonStyle(.plain)

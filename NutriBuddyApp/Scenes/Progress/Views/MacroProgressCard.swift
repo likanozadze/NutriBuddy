@@ -10,24 +10,22 @@ import SwiftUI
 
 struct MacroProgressCard: View {
     let macro: MacroProgress
-    
+ 
     var body: some View {
         VStack(spacing: 12) {
             MacroHeaderView(macro: macro)
             MacroCircularProgress(macro: macro)
             MacroDetailsView(macro: macro)
-Spacer(minLength: 0)
+            Spacer(minLength: 0)
         }
         
         .frame(maxWidth: .infinity)
         .frame(height: 120)
-        .background(macroCardBackground)
-    }
-    
-    private var macroCardBackground: some View {
-        RoundedRectangle(cornerRadius: 16)
-            .fill(.ultraThinMaterial)
-            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.cardBackground)
+        )
+        
     }
 }
 

@@ -36,7 +36,6 @@ struct FoodListView: View {
 
 struct FoodItemCard: View {
     let food: FoodEntry
-    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         HStack(spacing: 12) {
@@ -57,7 +56,7 @@ struct FoodItemCard: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
+                .fill(Color.cardBackground)
         )
     }
     
