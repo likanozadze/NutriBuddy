@@ -16,13 +16,11 @@ struct MainView: View {
     @EnvironmentObject private var healthKitManager: HealthKitManager
     
     @State private var progressUpdateTask: Task<Void, Never>?
-    @State private var showingAddFood = false
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                
+            List {
+                Section {
                     VStack(spacing: 16) {
                         if progressViewModel.hasProfile {
                             CalorieProgressCard(
@@ -51,68 +49,46 @@ struct MainView: View {
                             NoProfileCard()
                         }
                     }
-                    
-                  
-                    VStack(spacing: 12) {
-                        if !foodListViewModel.dailyFoods.isEmpty {
-                            FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
-                            
-                            List {
-                                ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
-                                    FoodItemCard(food: food)
-                                        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                                        .listRowSeparator(.hidden)
-                                        .listRowBackground(Color.clear)
-                                }
-                                .onDelete { indexSet in
-                                    indexSet.forEach { index in
-                                        let food = foodListViewModel.dailyFoods[index]
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                
+                Section {
+                    if !foodListViewModel.dailyFoods.isEmpty {
+                       
+                        FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                        
+                        ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
+                            FoodItemCard(food: food)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .swipeActions(edge: .trailing) {
+                                    Button("Delete", role: .destructive) {
                                         withAnimation {
                                             foodListViewModel.deleteFood(food)
                                             scheduleProgressUpdate()
                                         }
                                     }
                                 }
-                            }
-                            .listStyle(.plain)
-                            .frame(height: CGFloat(foodListViewModel.dailyFoods.count * 70))
-                            .scrollDisabled(true)
-                            .background(Color.clear)
-                            
-                      
-                            Button(action: { showingAddFood = true }) {
-                                HStack {
-                                    Text("Add Food")
-                                        .font(.system(size: 16, weight: .medium))
-                                }
-                                .foregroundColor(Color.appBackground)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(Color.calorieCardButtonBlue)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                            .padding(.top, 16)
-                        } else {
-                            EmptyFoodLogView(onAddFood: { showingAddFood = true })
                         }
+                    } else {
+                        
+                        EmptyFoodLogView(onAddFood: {
+                        })
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
             }
+            .listStyle(.plain)
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     dateNavigationBar
                 }
-            }
-            .sheet(isPresented: $showingAddFood) {
-                AddFoodView(
-                    selectedDate: foodListViewModel.selectedDate,
-                    context: context
-                )
             }
             .onAppear {
                 refreshViewModelsFromQueries()
@@ -204,4 +180,3 @@ struct MainView: View {
         }
     }
 }
-

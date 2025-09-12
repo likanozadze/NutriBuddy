@@ -744,7 +744,7 @@ struct NutritionValue: View {
     }
 }
 
-// MARK: - Nutrition Badge (Reused from original)
+// MARK: - Nutrition Badge
 struct NutritionBadge: View {
     let icon: String
     let value: String
@@ -762,7 +762,7 @@ struct NutritionBadge: View {
     }
 }
 
-// MARK: - Empty Quick Add View (Reused from original)
+// MARK: - Empty Quick Add View 
 struct EmptyQuickAddView: View {
     var body: some View {
         VStack(spacing: 16) {

@@ -27,9 +27,10 @@ struct FoodListView: View {
             }
         
         .listStyle(.plain)
-        .scrollDisabled(true)
+       // .scrollDisabled(true)
     }
 }
+
 
 struct FoodItemCard: View {
     let food: FoodEntry
@@ -37,28 +38,28 @@ struct FoodItemCard: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(food.name)
-                    .font(.headline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.primaryText)
                     .lineLimit(1)
                 
                 Text(amountDisplayText)
-                    .font(.subheadline)
+                    .font(.system(size: 13))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
             Spacer()
         }
-        .padding(.horizontal, 10) 
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
         )
     }
        
+
     private var amountDisplayText: String {
         if food.isServingMode {
             let servingCount = food.servingsCount
@@ -77,16 +78,16 @@ struct EmptyFoodLogView: View {
         VStack(spacing: 16) {
             Button(action: { onAddFood() }) {
                 VStack(spacing: 12) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 48))
-                        .foregroundColor(.customOrange.opacity(0.6))
+//                    Image(systemName: "plus.circle.fill")
+//                        .font(.system(size: 48))
+//                        .foregroundColor(.customOrange.opacity(0.6))
                     
                     VStack(spacing: 4) {
                         Text("No food logged yet")
                             .font(.headline)
                             .foregroundColor(.primaryText)
                         
-                        Text("Tap here to start tracking your meals")
+                        Text("Tap + to start tracking your meals")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
