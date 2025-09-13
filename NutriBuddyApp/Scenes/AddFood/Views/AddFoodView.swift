@@ -7,13 +7,11 @@
 
 import SwiftUI
 import SwiftData
+import AVFoundation
 
 struct AddFoodView: View {
-    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-    
     @StateObject private var viewModel: AddFoodViewModel
-    @State private var selectedTab: AddFoodTab = .quickAdd
     
     let selectedDate: Date
     
@@ -25,9 +23,9 @@ struct AddFoodView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                TabPickerView(selectedTab: $selectedTab)
+                TabPickerView(selectedTab: $viewModel.selectedTab)
                 
-                TabView(selection: $selectedTab) {
+                TabView(selection: $viewModel.selectedTab) {
                     QuickAddView(
                         viewModel: viewModel,
                         onFoodSelected: { template in
@@ -41,6 +39,13 @@ struct AddFoodView: View {
                         dismiss()
                     })
                     .tag(AddFoodTab.manual)
+                    
+                    BarcodeTabView(
+                        onScanTapped: {
+                            viewModel.handleScanTapped()
+                        }
+                    )
+                    .tag(AddFoodTab.barcode)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
@@ -54,27 +59,100 @@ struct AddFoodView: View {
                     .foregroundColor(.customBlue)
                 }
             }
+            .fullScreenCover(isPresented: $viewModel.showingBarcodeScanner) {
+                BarcodeScannerView(
+                    onBarcodeScanned: { barcode in
+                        viewModel.handleBarcodeScanned(barcode)
+                    },
+                    onCancel: {
+                        viewModel.cancelBarcodeScanning()
+                    }
+                )
+            }
+            .sheet(isPresented: $viewModel.showingBarcodeResult) {
+                if let barcodeFood = viewModel.scannedBarcodeFood {
+                    BarcodeResultView(
+                        barcodeFood: barcodeFood,
+                        onSave: { grams in
+                            viewModel.saveBarcodeFood(grams: grams)
+                            dismiss()
+                        },
+                        onCancel: {
+                            viewModel.cancelBarcodeResult()
+                        }
+                    )
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                }
+            }
+            .overlay {
+                if viewModel.isLoadingBarcodeFood {
+                    LoadingOverlay(message: viewModel.loadingMessage)
+                }
+            }
+            .alert("Barcode Error", isPresented: $viewModel.showingBarcodeError) {
+                Button("OK") {
+                    viewModel.dismissBarcodeError()
+                }
+            } message: {
+                if let error = viewModel.barcodeError {
+                    Text(error)
+                }
+            }
         }
     }
 }
 
-// MARK: - Add Food Tab Enum
+// MARK: - Updated Add Food Tab Enum
 enum AddFoodTab: String, CaseIterable {
     case quickAdd = "Quick Add"
     case manual = "Manual"
+    case barcode = "Barcode"
     
     var icon: String {
         switch self {
         case .quickAdd: return "clock.arrow.circlepath"
         case .manual: return "plus.circle"
+        case .barcode: return "barcode"
         }
     }
+}
+
+// MARK: - Loading Overlay
+struct LoadingOverlay: View {
+    let message: String
+    
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.2)
+                    .progressViewStyle(CircularProgressViewStyle(tint: .customOrange))
+                
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundColor(.primaryText)
+            }
+            .padding(24)
+            .background(Color.cardBackground)
+            .cornerRadius(12)
+            .shadow(radius: 10)
+        }
+    }
+}
+
+// MARK: - Make BarcodeFood Identifiable for Sheet
+extension BarcodeFood: Identifiable {
+    var id: String { barcode }
 }
 
 // MARK: - Tab Picker View
 struct TabPickerView: View {
     @Binding var selectedTab: AddFoodTab
-    
+
     var body: some View {
         HStack(spacing: 0) {
             ForEach(AddFoodTab.allCases, id: \.self) { tab in
@@ -86,7 +164,7 @@ struct TabPickerView: View {
                     VStack(spacing: 6) {
                         Image(systemName: tab.icon)
                             .font(.system(size: 16, weight: .medium))
-                        
+
                         Text(tab.rawValue)
                             .font(.caption)
                             .fontWeight(.medium)

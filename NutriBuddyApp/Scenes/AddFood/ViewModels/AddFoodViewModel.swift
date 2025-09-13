@@ -7,6 +7,7 @@
 //
 import SwiftUI
 import SwiftData
+import AVFoundation
 
 enum NutritionInputMode: String, CaseIterable {
     case grams = "Grams"
@@ -32,6 +33,17 @@ final class AddFoodViewModel: ObservableObject {
     @Published var name = ""
     @Published var inputMode: NutritionInputMode = .grams
     @Published var showAdvancedOptions = false
+    @Published var selectedTab: AddFoodTab = .quickAdd
+    
+    // Barcode-related properties
+    @Published var showingBarcodeScanner = false
+    @Published var showingBarcodeResult = false
+    @Published var scannedBarcodeFood: BarcodeFood?
+    @Published var isLoadingBarcodeFood = false
+    @Published var barcodeError: String?
+    @Published var showingBarcodeError = false
+    @Published var processingBarcode: String?
+    @Published var loadingMessage = "Looking up product..."
     
     @Published var servingAmount = ""
     @Published var servingCalories = ""
@@ -56,6 +68,7 @@ final class AddFoodViewModel: ObservableObject {
     let selectedDate: Date
     private var context: ModelContext
     private let foodSearchService = FoodSearchService()
+    private let barcodeService = BarcodeFoodService()
     
     init(selectedDate: Date, context: ModelContext) {
         self.selectedDate = selectedDate
@@ -156,6 +169,120 @@ final class AddFoodViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Barcode Scanning Methods
+    func handleScanTapped() {
+        checkCameraPermission { [weak self] granted in
+            DispatchQueue.main.async {
+                if granted {
+                    self?.showingBarcodeScanner = true
+                }
+            }
+        }
+    }
+    
+    func handleBarcodeScanned(_ barcode: String) {
+        showingBarcodeScanner = false
+        
+        guard processingBarcode != barcode else {
+            print("🔄 Already processing barcode: \(barcode)")
+            return
+        }
+        
+        print("🔍 Barcode scanned in AddFoodView: \(barcode)")
+        processingBarcode = barcode
+        isLoadingBarcodeFood = true
+        scannedBarcodeFood = nil
+        loadingMessage = "Looking up product..."
+        
+        Task {
+            await fetchBarcodeFood(barcode: barcode)
+        }
+    }
+    
+    func cancelBarcodeScanning() {
+        showingBarcodeScanner = false
+    }
+    
+    func saveBarcodeFood(grams: Double) {
+        guard let barcodeFood = scannedBarcodeFood else { return }
+        addBarcodeFood(barcodeFood, grams: grams)
+        scannedBarcodeFood = nil
+        showingBarcodeResult = false
+    }
+    
+    func cancelBarcodeResult() {
+        scannedBarcodeFood = nil
+        showingBarcodeResult = false
+    }
+    
+    func dismissBarcodeError() {
+        barcodeError = nil
+        showingBarcodeError = false
+    }
+    
+    // MARK: - Private Barcode Methods
+    private func checkCameraPermission(completion: @escaping (Bool) -> Void) {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            completion(true)
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                completion(granted)
+            }
+        case .denied, .restricted:
+            DispatchQueue.main.async { [weak self] in
+                self?.barcodeError = "Camera access is required to scan barcodes. Please enable camera access in Settings."
+                self?.showingBarcodeError = true
+            }
+            completion(false)
+        @unknown default:
+            completion(false)
+        }
+    }
+    
+    private func fetchBarcodeFood(barcode: String) async {
+        print("📡 Starting API lookup for: \(barcode)")
+        
+        do {
+            if let barcodeFood = await barcodeService.fetchFoodInfo(barcode: barcode) {
+                print("✅ Successfully fetched food data: \(barcodeFood.name)")
+                await MainActor.run { [weak self] in
+                    self?.isLoadingBarcodeFood = false
+                    self?.scannedBarcodeFood = barcodeFood
+                    self?.showingBarcodeResult = true
+                    self?.processingBarcode = nil
+                    print("🔄 UI updated with barcode food")
+                }
+            } else {
+                print("❌ Failed to fetch food data for barcode: \(barcode)")
+                await MainActor.run { [weak self] in
+                    self?.isLoadingBarcodeFood = false
+                    self?.processingBarcode = nil
+                    self?.barcodeError = "Product not found in database. Please try manual entry or scan a different product."
+                    self?.showingBarcodeError = true
+                }
+            }
+        }
+    }
+    
+    private func addBarcodeFood(_ barcodeFood: BarcodeFood, grams: Double) {
+        let food = FoodEntry(
+            name: barcodeFood.name,
+            caloriesPer100g: barcodeFood.caloriesPer100g,
+            proteinPer100g: barcodeFood.proteinPer100g,
+            carbsPer100g: barcodeFood.carbsPer100g,
+            fatPer100g: barcodeFood.fatPer100g,
+            fiberPer100g: barcodeFood.fiberPer100g,
+            sugarPer100g: barcodeFood.sugarPer100g,
+            grams: grams,
+            date: selectedDate,
+            inputMode: NutritionInputMode.grams.rawValue
+        )
+        
+        saveFood(food)
+        print("💾 Successfully saved barcode food to database")
+    }
+
     // MARK: - Public Methods
     @MainActor
     func loadFoodTemplates() async {
@@ -181,15 +308,12 @@ final class AddFoodViewModel: ObservableObject {
             isSearching = true
         }
         
-
         let localResults = uniqueFoodTemplates
             .filter { $0.name.localizedCaseInsensitiveContains(searchText) }
             .map { FoodSearchResult.local($0) }
         
-        
         let apiResults = await foodSearchService.searchFoods(query: searchText)
             .map { FoodSearchResult.api($0) }
-        
 
         await MainActor.run {
             searchResults = localResults + apiResults
@@ -336,5 +460,14 @@ final class AddFoodViewModel: ObservableObject {
     private func isValidNonNegativeDouble(_ string: String) -> Bool {
         guard let value = Double(string) else { return false }
         return value >= 0
+    }
+}
+
+// MARK: - Barcode Food Validation
+extension AddFoodViewModel {
+    func validateBarcodeFood(_ barcodeFood: BarcodeFood) -> Bool {
+        return !barcodeFood.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               barcodeFood.caloriesPer100g >= 0 &&
+               barcodeFood.proteinPer100g >= 0
     }
 }
