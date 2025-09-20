@@ -18,7 +18,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		98678E152E7EAC56000C9070 /* Exceptions for "NutriBuddyApp" folder in "NutriBuddyApp" target */ = {
+		98678E2B2E7EB954000C9070 /* Exceptions for "NutriBuddyApp" folder in "NutriBuddyApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -31,7 +31,7 @@
 		98A50AEC2E5A1ACB001C2422 /* NutriBuddyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				98678E152E7EAC56000C9070 /* Exceptions for "NutriBuddyApp" folder in "NutriBuddyApp" target */,
+				98678E2B2E7EB954000C9070 /* Exceptions for "NutriBuddyApp" folder in "NutriBuddyApp" target */,
 			);
 			path = NutriBuddyApp;
 			sourceTree = "<group>";
