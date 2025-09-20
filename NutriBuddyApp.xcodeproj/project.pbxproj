@@ -8,16 +8,31 @@
 
 /* Begin PBXBuildFile section */
 		9848766D2E754BB900A6D816 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9848766C2E754BB900A6D816 /* AVFoundation.framework */; };
+		98678E132E7EAAA2000C9070 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 98678E112E7EAA9D000C9070 /* Config.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9848766C2E754BB900A6D816 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		98678E112E7EAA9D000C9070 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		98A50AEA2E5A1ACB001C2422 /* NutriBuddyApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NutriBuddyApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		98678E152E7EAC56000C9070 /* Exceptions for "NutriBuddyApp" folder in "NutriBuddyApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 98A50AE92E5A1ACB001C2422 /* NutriBuddyApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		98A50AEC2E5A1ACB001C2422 /* NutriBuddyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				98678E152E7EAC56000C9070 /* Exceptions for "NutriBuddyApp" folder in "NutriBuddyApp" target */,
+			);
 			path = NutriBuddyApp;
 			sourceTree = "<group>";
 		};
@@ -47,6 +62,7 @@
 			isa = PBXGroup;
 			children = (
 				98A50AEC2E5A1ACB001C2422 /* NutriBuddyApp */,
+				98678E112E7EAA9D000C9070 /* Config.xcconfig */,
 				9848766B2E754BB900A6D816 /* Frameworks */,
 				98A50AEB2E5A1ACB001C2422 /* Products */,
 			);
@@ -124,6 +140,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98678E132E7EAAA2000C9070 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,6 +159,7 @@
 /* Begin XCBuildConfiguration section */
 		98A50AF62E5A1ACC001C2422 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 98678E112E7EAA9D000C9070 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -205,6 +223,7 @@
 		};
 		98A50AF72E5A1ACC001C2422 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 98678E112E7EAA9D000C9070 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -271,6 +290,8 @@
 				DEVELOPMENT_TEAM = 6YYNTH585K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NutriBuddyApp/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to scan food product barcodes and automatically fetch nutritional information.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Please allow access to enjoy all the features of our application";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs photo library access to select barcode images for nutritional lookup.\nThis app needs photo library access to select barcode images for nutritional lookup.\nThis app needs photo library access to select barcode images for nutritional lookup.";
@@ -305,6 +326,8 @@
 				DEVELOPMENT_TEAM = 6YYNTH585K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NutriBuddyApp/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to scan food product barcodes and automatically fetch nutritional information.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Please allow access to enjoy all the features of our application";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs photo library access to select barcode images for nutritional lookup.\nThis app needs photo library access to select barcode images for nutritional lookup.\nThis app needs photo library access to select barcode images for nutritional lookup.";

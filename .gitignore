@@ -1,3 +1,4 @@
+*.xcconfig
 # Xcode
 *.xcuserdatad
 *.xcworkspace

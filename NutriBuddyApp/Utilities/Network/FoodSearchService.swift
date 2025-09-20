@@ -9,8 +9,13 @@ import Foundation
 
 class FoodSearchService {
     private let baseURL = "https://api.nal.usda.gov/fdc/v1"
-    private let apiKey = "3CH4fhvOSNQcInVizMR11wlans5tS4vIgm5LFEH0"
-
+    
+    private var apiKey: String {
+           guard let key = Bundle.main.infoDictionary?["FDC_API_KEY"] as? String else {
+               fatalError("❌ Missing FDC_API_KEY in .xcconfig or Info.plist")
+           }
+           return key
+       }
     func searchFoods(query: String) async -> [APIFood] {
         guard !query.isEmpty else { return [] }
         guard var urlComponents = URLComponents(string: "\(baseURL)/foods/search") else { return [] }
