@@ -329,7 +329,7 @@ final class AddFoodViewModel: ObservableObject {
             $0.name.localizedCaseInsensitiveContains(searchText)
         }
     }
-    
+
     func addQuickFood(_ template: RecentFood) {
         let food = FoodEntry(
             name: template.name,
@@ -342,7 +342,7 @@ final class AddFoodViewModel: ObservableObject {
             grams: template.servingSize ?? 100,
             date: selectedDate,
             inputMode: template.inputMode,
-            servingSize: template.servingSize
+            servingSize: template.isServingMode ? (template.servingSize ?? 100) : nil
         )
         
         saveFood(food)
@@ -461,6 +461,8 @@ final class AddFoodViewModel: ObservableObject {
         guard let value = Double(string) else { return false }
         return value >= 0
     }
+    
+    
 }
 
 // MARK: - Barcode Food Validation
