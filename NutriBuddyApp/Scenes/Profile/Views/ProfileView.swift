@@ -17,10 +17,17 @@ struct ProfileView: View {
     @State private var localAge: String = ""
     @State private var localWeight: String = ""
     @State private var localHeight: String = ""
-    
+
     @State private var isCalculating = false
     @State private var calculationTask: Task<Void, Never>?
-    
+
+    // MARK: - Focus State
+    @FocusState private var focusedField: Field?
+
+    enum Field: Hashable {
+        case age, weight, height
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -35,6 +42,10 @@ struct ProfileView: View {
                 .padding(.top, 10)
             }
             .background(Color.appBackground)
+            // Tap anywhere outside fields to dismiss keyboard
+            .onTapGesture {
+                focusedField = nil
+            }
             .onAppear {
                 viewModel.configure(context: context, profiles: profiles)
                 syncLocalState()
@@ -52,8 +63,8 @@ struct ProfileView: View {
             }
         }
     }
-    
-    // MARK: - Header Section
+
+    // MARK: - Header
     private var headerSection: some View {
         VStack(spacing: 12) {
             Image(systemName: "person.circle.fill")
@@ -65,7 +76,7 @@ struct ProfileView: View {
                         endPoint: .bottomTrailing
                     )
                 )
-            
+
             Text("Your Profile")
                 .font(.title2)
                 .fontWeight(.semibold)
@@ -73,7 +84,7 @@ struct ProfileView: View {
         }
         .padding(.top, 10)
     }
-    
+
     // MARK: - Personal Info Card
     private var personalInfoCard: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -86,7 +97,7 @@ struct ProfileView: View {
                     .fontWeight(.semibold)
                 Spacer()
             }
-            
+
             VStack(spacing: 16) {
                 AppTextField(
                     title: "Age",
@@ -98,6 +109,7 @@ struct ProfileView: View {
                     debounceTime: 0.5,
                     onTextChanged: { _ in debouncedRecalculation() }
                 )
+                .focused($focusedField, equals: .age)
 
                 AppTextField(
                     title: "Weight (kg)",
@@ -109,6 +121,7 @@ struct ProfileView: View {
                     debounceTime: 0.5,
                     onTextChanged: { _ in debouncedRecalculation() }
                 )
+                .focused($focusedField, equals: .weight)
 
                 AppTextField(
                     title: "Height (cm)",
@@ -120,6 +133,7 @@ struct ProfileView: View {
                     debounceTime: 0.5,
                     onTextChanged: { _ in debouncedRecalculation() }
                 )
+                .focused($focusedField, equals: .height)
 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -130,7 +144,7 @@ struct ProfileView: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
-                    
+
                     Picker("Gender", selection: $viewModel.selectedGender) {
                         ForEach(Gender.allCases, id: \.self) { gender in
                             Text(gender.rawValue)
@@ -147,7 +161,7 @@ struct ProfileView: View {
         .padding(20)
         .cardStyle()
     }
-    
+
     // MARK: - Activity & Goal Card
     private var activityGoalCard: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -160,8 +174,9 @@ struct ProfileView: View {
                     .fontWeight(.semibold)
                 Spacer()
             }
-            
+
             VStack(spacing: 16) {
+                // Activity Level
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "figure.run")
@@ -185,7 +200,8 @@ struct ProfileView: View {
                         debouncedRecalculation()
                     }
                 }
-                
+
+                // Weight Goal
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "chart.line.uptrend.xyaxis")
@@ -214,7 +230,7 @@ struct ProfileView: View {
         .padding(20)
         .cardStyle()
     }
-    
+
     // MARK: - Nutrition Display Card
     private var nutritionDisplayCard: some View {
         VStack(spacing: 20) {
@@ -226,13 +242,13 @@ struct ProfileView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 Spacer()
-                
+
                 if isCalculating {
                     ProgressView()
                         .scaleEffect(0.8)
                 }
             }
-            
+
             if let preview = viewModel.previewProfile {
                 VStack(spacing: 20) {
                     VStack(spacing: 8) {
@@ -246,12 +262,12 @@ struct ProfileView: View {
                                 )
                             )
                             .animation(.easeInOut(duration: 0.3), value: preview.dailyCalorieTarget)
-                        
+
                         Text("kcal per day")
                             .font(.subheadline)
                             .foregroundColor(.secondaryText)
                     }
-                    
+
                     VStack(spacing: 4) {
                         Text("Base Metabolic Rate")
                             .font(.caption)
@@ -261,48 +277,21 @@ struct ProfileView: View {
                             .fontWeight(.medium)
                             .foregroundColor(.primaryText)
                     }
-                    
+
                     Divider()
                         .padding(.vertical, 4)
-                    
+
                     VStack(spacing: 12) {
                         Text("Macronutrient Targets")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(.primaryText)
-                        
+
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                            MacroCard(
-                                title: "Protein",
-                                value: Int(preview.proteinTarget),
-                                unit: "g",
-                                color: .customBlue,
-                                icon: "figure.strengthtraining.traditional"
-                            )
-                            
-                            MacroCard(
-                                title: "Carbs",
-                                value: Int(preview.carbTarget),
-                                unit: "g",
-                                color: .customGreen,
-                                icon: "leaf.fill"
-                            )
-                            
-                            MacroCard(
-                                title: "Fat",
-                                value: Int(preview.fatTarget),
-                                unit: "g",
-                                color: .customOrange,
-                                icon: "drop.fill"
-                            )
-                            
-                            MacroCard(
-                                title: "Fiber",
-                                value: Int(preview.fiberTarget),
-                                unit: "g",
-                                color: Color.brown,
-                                icon: "heart.fill"
-                            )
+                            MacroCard(title: "Protein", value: Int(preview.proteinTarget), unit: "g", color: .customBlue, icon: "figure.strengthtraining.traditional")
+                            MacroCard(title: "Carbs", value: Int(preview.carbTarget), unit: "g", color: .customGreen, icon: "leaf.fill")
+                            MacroCard(title: "Fat", value: Int(preview.fatTarget), unit: "g", color: .customOrange, icon: "drop.fill")
+                            MacroCard(title: "Fiber", value: Int(preview.fiberTarget), unit: "g", color: .brown, icon: "heart.fill")
                         }
                     }
                 }
@@ -316,7 +305,7 @@ struct ProfileView: View {
                         Text("--")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
                             .foregroundColor(.secondaryText)
-                        
+
                         Text("Complete your profile to see nutrition targets")
                             .font(.subheadline)
                             .foregroundColor(.secondaryText)
@@ -328,7 +317,7 @@ struct ProfileView: View {
         .padding(20)
         .cardStyle()
     }
-    
+
     // MARK: - Update Button
     private var updateButton: some View {
         Button(action: {
@@ -342,7 +331,7 @@ struct ProfileView: View {
                         .scaleEffect(0.8)
                         .foregroundColor(.white)
                 }
-                
+
                 Text(viewModel.isUpdating ? "Updating..." : "Save Profile")
                     .fontWeight(.semibold)
             }
@@ -362,43 +351,35 @@ struct ProfileView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.isUpdating)
     }
-    
-    // MARK: - Helper Methods
-    
+
+    // MARK: - Helpers
     private func syncLocalState() {
         localAge = viewModel.age
         localWeight = viewModel.weight
         localHeight = viewModel.height
     }
-    
+
     private func syncViewModelState() {
         viewModel.age = localAge
         viewModel.weight = localWeight
         viewModel.height = localHeight
     }
-    
+
     private func debouncedRecalculation() {
         calculationTask?.cancel()
-        
         calculationTask = Task {
             isCalculating = true
-            
-            try? await Task.sleep(nanoseconds: 800_000_000) // 0.8s debounce
-            
+            try? await Task.sleep(nanoseconds: 800_000_000)
             if !Task.isCancelled {
                 await MainActor.run {
-                    // Sync local state to view model
                     syncViewModelState()
-                    
-                    // Perform calculations
                     viewModel.recalculateNutritionTargets()
-                    
                     isCalculating = false
                 }
             }
         }
     }
-    
+
     private func isProfileValid() -> Bool {
         return !localAge.isEmpty &&
                !localWeight.isEmpty &&
@@ -407,15 +388,15 @@ struct ProfileView: View {
                Double(localWeight) != nil &&
                Int(localHeight) != nil
     }
-    
-    // MARK: - Macro Card Component
+
+    // MARK: - Macro Card
     struct MacroCard: View {
         let title: String
         let value: Int
         let unit: String
         let color: Color
         let icon: String
-        
+
         var body: some View {
             VStack(spacing: 8) {
                 HStack {
@@ -428,7 +409,7 @@ struct ProfileView: View {
                         .foregroundColor(.secondaryText)
                     Spacer()
                 }
-                
+
                 HStack {
                     Text("\(value)")
                         .font(.title3)

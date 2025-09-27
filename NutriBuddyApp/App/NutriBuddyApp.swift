@@ -20,13 +20,15 @@ struct NutriBuddyApp: App {
     }
 }
 
+
+// MARK: - Main App View
 struct MainAppView: View {
     @Query private var profiles: [UserProfile]
     @State private var showOnboarding = false
     @State private var showingAddFood = false
     @State private var selectedTab = 0
     @Environment(\.modelContext) private var context
-    
+
     var body: some View {
         Group {
             if profiles.isEmpty {
@@ -41,7 +43,7 @@ struct MainAppView: View {
                                 Label("Food", systemImage: "list.bullet")
                             }
                             .tag(0)
-
+                        
                         ProfileView()
                             .tabItem {
                                 Label("Profile", systemImage: "person.circle")
@@ -50,16 +52,17 @@ struct MainAppView: View {
                     }
                     .accentColor(.blue)
                     
-                    // Floating Add Button
-                    VStack {
-                        Spacer()
-                        HStack {
+                    // MARK: - Floating Add Food Button (Only on Food Tab)
+                    if selectedTab == 0 {
+                        VStack {
                             Spacer()
-                            Button(action: {
-                                showingAddFood = true
-                            }) {
-
-                                Image(systemName: "plus")
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                  
+                                    showingAddFood = true
+                                }) {
+                                    Image(systemName: "plus")
                                         .font(.system(size: 28, weight: .bold))
                                         .foregroundColor(.white)
                                         .frame(width: 64, height: 64)
@@ -74,20 +77,25 @@ struct MainAppView: View {
                                         .shadow(radius: 6, y: 3)
                                 }
                                 .offset(y: -20)
-                            Spacer()
+                                Spacer()
+                            }
                         }
+                        .transition(.scale)
+                        .animation(.easeInOut, value: selectedTab)
                     }
                 }
                 .sheet(isPresented: $showingAddFood) {
                     AddFoodView(
                         selectedDate: Date(),
-                        context: context  
+                        context: context
                     )
                 }
+                .onAppear {
+                    showOnboarding = profiles.isEmpty
+                }
+                
             }
-        }
-        .onAppear {
-            showOnboarding = profiles.isEmpty
         }
     }
 }
+
