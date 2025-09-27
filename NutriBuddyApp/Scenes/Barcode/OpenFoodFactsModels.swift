@@ -26,6 +26,10 @@ struct OpenFoodFactsProduct: Codable {
     let nutriments: Nutriments?
     let imageFrontUrl: String?
     let imageFrontSmallUrl: String?
+    let servingSize: String?
+    let servingQuantity: Double?
+    let quantity: String?
+    let productQuantity: Double?
     
     enum CodingKeys: String, CodingKey {
         case code
@@ -34,6 +38,42 @@ struct OpenFoodFactsProduct: Codable {
         case brands, nutriments
         case imageFrontUrl = "image_front_url"
         case imageFrontSmallUrl = "image_front_small_url"
+        case servingSize = "serving_size"
+        case servingQuantity = "serving_quantity"
+        case quantity
+        case productQuantity = "product_quantity"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        code = try container.decodeIfPresent(String.self, forKey: .code)
+        productName = try container.decodeIfPresent(String.self, forKey: .productName)
+        productNameEn = try container.decodeIfPresent(String.self, forKey: .productNameEn)
+        brands = try container.decodeIfPresent(String.self, forKey: .brands)
+        nutriments = try container.decodeIfPresent(Nutriments.self, forKey: .nutriments)
+        imageFrontUrl = try container.decodeIfPresent(String.self, forKey: .imageFrontUrl)
+        imageFrontSmallUrl = try container.decodeIfPresent(String.self, forKey: .imageFrontSmallUrl)
+        servingSize = try container.decodeIfPresent(String.self, forKey: .servingSize)
+        quantity = try container.decodeIfPresent(String.self, forKey: .quantity)
+        
+   
+        if let servingQuantityDouble = try? container.decodeIfPresent(Double.self, forKey: .servingQuantity) {
+            servingQuantity = servingQuantityDouble
+        } else if let servingQuantityString = try? container.decodeIfPresent(String.self, forKey: .servingQuantity) {
+            servingQuantity = Double(servingQuantityString)
+        } else {
+            servingQuantity = nil
+        }
+        
+       
+        if let productQuantityDouble = try? container.decodeIfPresent(Double.self, forKey: .productQuantity) {
+            productQuantity = productQuantityDouble
+        } else if let productQuantityString = try? container.decodeIfPresent(String.self, forKey: .productQuantity) {
+            productQuantity = Double(productQuantityString)
+        } else {
+            productQuantity = nil
+        }
     }
 }
 

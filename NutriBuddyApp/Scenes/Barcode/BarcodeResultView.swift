@@ -12,192 +12,291 @@ struct BarcodeResultView: View {
     let onSave: (Double) -> Void
     let onCancel: () -> Void
     
-    @State private var grams: String = "100"
+    init(barcodeFood: BarcodeFood, onSave: @escaping (Double) -> Void, onCancel: @escaping () -> Void) {
+            self.barcodeFood = barcodeFood
+            self.onSave = onSave
+            self.onCancel = onCancel
+        }
+    @State private var amount: Double = 100
+    @State private var amountText = "100"
+    @State private var isEditingAmount = false
+    @State private var isAnimating = false
+    @FocusState private var isAmountFieldFocused: Bool
     
-    private var calculatedCalories: Double {
-        guard let gramsValue = Double(grams), gramsValue > 0 else { return 0 }
-        return (barcodeFood.caloriesPer100g * gramsValue) / 100
+    private var nutritionData: [NutritionInfo] {
+        let ratio = amount / 100
+        return [
+            NutritionInfo(
+                label: "Calories",
+                value: Int(barcodeFood.caloriesPer100g * ratio),
+                baseValue: Int(barcodeFood.caloriesPer100g),
+                unit: nil,
+                color: LinearGradient(colors: [.orange, .red], startPoint: .leading, endPoint: .trailing),
+                icon: "flame.fill"
+            ),
+            NutritionInfo(
+                label: "Protein",
+                value: Int(barcodeFood.proteinPer100g * ratio),
+                baseValue: Int(barcodeFood.proteinPer100g),
+                unit: "g",
+                color: LinearGradient(colors: [.blue, Color(red: 0.2, green: 0.4, blue: 0.8)], startPoint: .leading, endPoint: .trailing),
+                icon: "bolt.fill"
+            ),
+            NutritionInfo(
+                label: "Carbs",
+                value: Int(barcodeFood.carbsPer100g * ratio),
+                baseValue: Int(barcodeFood.carbsPer100g),
+                unit: "g",
+                color: LinearGradient(colors: [.green, Color(red: 0.2, green: 0.7, blue: 0.3)], startPoint: .leading, endPoint: .trailing),
+                icon: "leaf.fill"
+            ),
+            NutritionInfo(
+                label: "Fat",
+                value: Int(barcodeFood.fatPer100g * ratio),
+                baseValue: Int(barcodeFood.fatPer100g),
+                unit: "g",
+                color: LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing),
+                icon: "drop.fill"
+            )
+        ]
     }
     
-    private var calculatedProtein: Double {
-        guard let gramsValue = Double(grams), gramsValue > 0 else { return 0 }
-        return (barcodeFood.proteinPer100g * gramsValue) / 100
-    }
-    
-    private var calculatedCarbs: Double {
-        guard let gramsValue = Double(grams), gramsValue > 0 else { return 0 }
-        return (barcodeFood.carbsPer100g * gramsValue) / 100
-    }
-    
-    private var calculatedFat: Double {
-        guard let gramsValue = Double(grams), gramsValue > 0 else { return 0 }
-        return (barcodeFood.fatPer100g * gramsValue) / 100
-    }
+    private var quickAmounts: [Double] = [50, 100, 150, 200]
     
     var body: some View {
-        NavigationView {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(.systemGray6).opacity(0.3),
+                    Color(.systemGray5).opacity(0.5)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
+                    headerView
+                    productCardView
+                    amountSelectionView
+                    nutritionalPreviewView
+                    actionButtonsView
                     
-                    // MARK: - Product Info Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(barcodeFood.name)
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.primary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                
-                                if let brand = barcodeFood.brand {
-                                    Text(brand)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Text("Barcode: \(barcodeFood.barcode)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(.secondary)
-                                )
-                        }
-                        
-                        VStack(spacing: 8) {
-                            HStack(spacing: 12) {
-                                NutritionBadge(icon: "flame",
-                                               value: "\(Int(barcodeFood.caloriesPer100g)) cal/100g",
-                                               color: .orange)
-                                
-                                NutritionBadge(icon: "bolt",
-                                               value: "\(Int(barcodeFood.proteinPer100g))g protein/100g",
-                                               color: .blue)
-                            }
-                            
-                            if barcodeFood.carbsPer100g > 0 || barcodeFood.fatPer100g > 0 {
-                                HStack(spacing: 12) {
-                                    if barcodeFood.carbsPer100g > 0 {
-                                        NutritionBadge(icon: "leaf",
-                                                       value: "\(Int(barcodeFood.carbsPer100g))g carbs/100g",
-                                                       color: .green)
-                                    }
-                                    if barcodeFood.fatPer100g > 0 {
-                                        NutritionBadge(icon: "drop",
-                                                       value: "\(Int(barcodeFood.fatPer100g))g fat/100g",
-                                                       color: .yellow)
-                                    }
-                                    Spacer()
-                                }
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
-                    
-                    // MARK: - Portion Input Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("How much did you consume?")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        HStack {
-                            TextField("100", text: $grams)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.decimalPad)
-                                .frame(width: 100)
-                            
-                            Text("grams")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            
-                            Spacer()
-                        }
-                    }
-                    .padding()
-                    .background(Color.gray.opacity(0.05))
-                    .cornerRadius(12)
-                    
-                    // MARK: - Portion Summary Section
-                    if Double(grams) ?? 0 > 0 {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Your Portion")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            VStack(spacing: 8) {
-                                HStack(spacing: 12) {
-                                    NutritionValue(title: "Calories",
-                                                   value: "\(Int(calculatedCalories))",
-                                                   color: .orange)
-                                    
-                                    NutritionValue(title: "Protein",
-                                                   value: "\(Int(calculatedProtein))g",
-                                                   color: .blue)
-                                }
-                                
-                                if calculatedCarbs > 0 || calculatedFat > 0 {
-                                    HStack(spacing: 12) {
-                                        if calculatedCarbs > 0 {
-                                            NutritionValue(title: "Carbs",
-                                                           value: "\(Int(calculatedCarbs))g",
-                                                           color: .green)
-                                        }
-                                        if calculatedFat > 0 {
-                                            NutritionValue(title: "Fat",
-                                                           value: "\(Int(calculatedFat))g",
-                                                           color: .yellow)
-                                        }
-                                        if calculatedCarbs == 0 || calculatedFat == 0 { Spacer() }
-                                    }
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(12)
-                    }
-                    
-                    Spacer(minLength: 100)
+                    Spacer(minLength: 20)
                 }
-                .padding()
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
             }
-            .navigationTitle("Add Barcode Food")
-            .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 12) {
-                    Button("Cancel") {
-                        onCancel()
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.secondary.opacity(0.2))
-                    .foregroundColor(.primary)
-                    .cornerRadius(12)
-                    
-                    Button("Add Food") {
-                        guard let gramsValue = Double(grams), gramsValue > 0 else { return }
-                        onSave(gramsValue)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background((Double(grams) ?? 0) > 0 ? Color.orange : Color.secondary.opacity(0.3))
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .disabled((Double(grams) ?? 0) <= 0)
-                }
-                .padding()
-                .background(Color(UIColor.systemBackground))
+        }
+        .onAppear {
+            amountText = "\(Int(amount))"
+        }
+        .onTapGesture {
+            if isEditingAmount {
+                updateAmountFromText()
             }
         }
     }
-}
+    
+    private var headerView: some View {
+        HStack {
+            Button(action: onCancel) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+                    )
+            }
+            
+            Spacer()
+            
+            Text("Add Barcode Food")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            
+            Spacer()
 
+            Color.clear.frame(width: 44, height: 44)
+        }
+    }
+    
+    private var productCardView: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 16) {
+                HStack(alignment: .top, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(barcodeFood.name)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.leading)
+                        
+                        if let brand = barcodeFood.brand {
+                            Text(brand)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Text("Barcode: \(barcodeFood.barcode)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .opacity(0.8)
+                    }
+                    
+                    Spacer()
+                    
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Image(systemName: "barcode")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+                        )
+                        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+                }
+                
+                Text("Per 100g serving")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            UniformNutritionGrid(nutritionData: nutritionData, showBaseValues: true)
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(.white.opacity(0.5), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+        )
+    }
+    
+    private var amountSelectionView: some View {
+        VStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Amount")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                AmountSelector(
+                    amount: $amount,
+                    amountText: $amountText,
+                    isEditingAmount: $isEditingAmount,
+                    isAmountFieldFocused: $isAmountFieldFocused,
+                    isAnimating: $isAnimating,
+                    selectedPortionType: .grams,
+                    calculatedGrams: amount,
+                    quickAmounts: quickAmounts,
+                    onUpdateAmount: updateAmountFromText
+                )
+            }
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(.white.opacity(0.5), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+        )
+    }
+    
+    private var nutritionalPreviewView: some View {
+        VStack(spacing: 16) {
+            Text("Your Portion")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            UniformNutritionGrid(nutritionData: nutritionData, showBaseValues: false, isAnimating: isAnimating)
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.green.opacity(0.1),
+                            Color(.systemTeal).opacity(0.05)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                )
+                .shadow(color: .green.opacity(0.1), radius: 20, x: 0, y: 10)
+        )
+    }
+    
+    private var actionButtonsView: some View {
+        HStack(spacing: 16) {
+            Button(action: onCancel) {
+                Text("Cancel")
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(.white.opacity(0.5), lineWidth: 1)
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+            }
+            
+            Button(action: {
+                onSave(amount)
+            }) {
+                Text("Add Food")
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            colors: [.blue, Color(red: 0.2, green: 0.4, blue: 0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .blue.opacity(0.3), radius: 15, x: 0, y: 8)
+            }
+            .scaleEffect(amount <= 0 ? 0.95 : 1.0)
+            .opacity(amount <= 0 ? 0.6 : 1.0)
+            .disabled(amount <= 0)
+        }
+        .padding(.bottom, 20)
+    }
+    
+    private func updateAmountFromText() {
+        if let newAmount = Double(amountText), newAmount > 0 {
+            amount = newAmount
+        }
+        isEditingAmount = false
+        isAmountFieldFocused = false
+    }
+}
