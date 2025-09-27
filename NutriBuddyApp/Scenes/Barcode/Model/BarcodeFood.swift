@@ -18,6 +18,8 @@ struct BarcodeFood {
     let sugarPer100g: Double
     let brand: String?
     let imageUrl: String?
+    let defaultPortion: Double?
+    
     
     init(from product: OpenFoodFactsProduct) {
         self.barcode = product.code ?? ""
@@ -39,5 +41,10 @@ struct BarcodeFood {
         self.fatPer100g = nutriments?.fat100g ?? 0
         self.fiberPer100g = nutriments?.fiber100g ?? 0
         self.sugarPer100g = nutriments?.sugars100g ?? 0
+        if let servingQuantity = product.servingQuantity, servingQuantity > 0 {
+                   self.defaultPortion = servingQuantity
+               } else {
+                   self.defaultPortion = nil
+               }
     }
 }

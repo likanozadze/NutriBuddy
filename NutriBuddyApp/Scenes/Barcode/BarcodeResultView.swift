@@ -12,16 +12,23 @@ struct BarcodeResultView: View {
     let onSave: (Double) -> Void
     let onCancel: () -> Void
     
-    init(barcodeFood: BarcodeFood, onSave: @escaping (Double) -> Void, onCancel: @escaping () -> Void) {
-            self.barcodeFood = barcodeFood
-            self.onSave = onSave
-            self.onCancel = onCancel
-        }
-    @State private var amount: Double = 100
-    @State private var amountText = "100"
+    @State private var amount: Double
+    @State private var amountText: String
     @State private var isEditingAmount = false
     @State private var isAnimating = false
     @FocusState private var isAmountFieldFocused: Bool
+    
+    init(barcodeFood: BarcodeFood, onSave: @escaping (Double) -> Void, onCancel: @escaping () -> Void) {
+        self.barcodeFood = barcodeFood
+        self.onSave = onSave
+        self.onCancel = onCancel
+        
+
+        let initial = barcodeFood.defaultPortion ?? 100
+        _amount = State(initialValue: initial)
+        _amountText = State(initialValue: "\(Int(initial))")
+    }
+
     
     private var nutritionData: [NutritionInfo] {
         let ratio = amount / 100
@@ -142,11 +149,6 @@ struct BarcodeResultView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        Text("Barcode: \(barcodeFood.barcode)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .opacity(0.8)
                     }
                     
                     Spacer()
@@ -185,11 +187,7 @@ struct BarcodeResultView: View {
     private var amountSelectionView: some View {
         VStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Amount")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                
+
                 AmountSelector(
                     amount: $amount,
                     amountText: $amountText,
