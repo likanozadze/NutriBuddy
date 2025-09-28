@@ -76,21 +76,40 @@ final class AddFoodViewModel: ObservableObject {
     }
     
     // MARK: - Computed Properties for View
-    var isValidForm: Bool {
+  var isValidForm: Bool {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         
         switch inputMode {
         case .servings:
             return isValidDouble(servingAmount) && isValidPositiveDouble(servingAmount) &&
-                   isValidDouble(servingCalories) && isValidNonNegativeDouble(servingCalories) &&
-                   isValidDouble(servingProtein) && isValidNonNegativeDouble(servingProtein)
+                   isValidDouble(servingCalories) && isValidNonNegativeDouble(servingCalories)
+            
         case .grams:
+          
             return isValidDouble(caloriesPer100g) && isValidNonNegativeDouble(caloriesPer100g) &&
-                   isValidDouble(proteinPer100g) && isValidNonNegativeDouble(proteinPer100g) &&
                    isValidDouble(grams) && isValidPositiveDouble(grams)
         }
     }
+
+    private func safeDoubleValue(_ string: String) -> Double {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? 0.0 : (Double(trimmed) ?? 0.0)
+    }
+
+    var calculatedProtein: Double {
+        switch inputMode {
+        case .servings:
+            let prot = safeDoubleValue(servingProtein)
+            guard let amount = Double(servingAmount), amount > 0 else { return 0 }
+            return prot * amount
+        case .grams:
+            let prot = safeDoubleValue(proteinPer100g)
+            guard let gr = Double(grams), gr > 0 else { return 0 }
+            return (prot * gr) / 100
+        }
+    }
     
+
     var calculatedCalories: Double {
         switch inputMode {
         case .servings:
@@ -104,18 +123,6 @@ final class AddFoodViewModel: ObservableObject {
         }
     }
     
-    var calculatedProtein: Double {
-        switch inputMode {
-        case .servings:
-            guard let prot = Double(servingProtein), prot >= 0,
-                  let amount = Double(servingAmount), amount > 0 else { return 0 }
-            return prot * amount
-        case .grams:
-            guard let prot = Double(proteinPer100g), prot >= 0,
-                  let gr = Double(grams), gr > 0 else { return 0 }
-            return (prot * gr) / 100
-        }
-    }
     
     var calculatedCarbs: Double {
         switch inputMode {
@@ -219,6 +226,7 @@ final class AddFoodViewModel: ObservableObject {
         barcodeError = nil
         showingBarcodeError = false
     }
+    
     
     // MARK: - Private Barcode Methods
     private func checkCameraPermission(completion: @escaping (Bool) -> Void) {
@@ -370,6 +378,44 @@ final class AddFoodViewModel: ObservableObject {
         saveFood(food)
     }
     
+    private func createFoodEntry() -> FoodEntry {
+        switch inputMode {
+        case .servings:
+            let servCal = Double(servingCalories) ?? 0
+            let servProt = safeDoubleValue(servingProtein)
+            let amount = Double(servingAmount) ?? 1
+            
+            let totalGrams = amount * 100
+            
+            return FoodEntry(
+                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                caloriesPer100g: servCal,
+                proteinPer100g: servProt,
+                carbsPer100g: safeDoubleValue(servingCarbs),
+                fatPer100g: safeDoubleValue(servingFat),
+                fiberPer100g: safeDoubleValue(servingFiber),
+                sugarPer100g: safeDoubleValue(servingSugar),
+                grams: totalGrams,
+                date: selectedDate,
+                inputMode: inputMode.rawValue,
+                servingSize: 100
+            )
+            
+        case .grams:
+            return FoodEntry(
+                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                caloriesPer100g: Double(caloriesPer100g) ?? 0,
+                proteinPer100g: safeDoubleValue(proteinPer100g),
+                carbsPer100g: safeDoubleValue(carbsPer100g),
+                fatPer100g: safeDoubleValue(fatPer100g),
+                fiberPer100g: safeDoubleValue(fiberPer100g),
+                sugarPer100g: safeDoubleValue(sugarPer100g),
+                grams: Double(grams) ?? 0,
+                date: selectedDate,
+                inputMode: inputMode.rawValue
+            )
+        }
+    }
     // MARK: - Private Methods
     private func generateFoodTemplates(from foods: [FoodEntry]) async -> [RecentFood] {
         return await Task.detached {
@@ -398,45 +444,7 @@ final class AddFoodViewModel: ObservableObject {
         }.value
     }
     
-    private func createFoodEntry() -> FoodEntry {
-        switch inputMode {
-        case .servings:
-            let servCal = Double(servingCalories) ?? 0
-            let servProt = Double(servingProtein) ?? 0
-            let amount = Double(servingAmount) ?? 1
-            
-            let totalGrams = amount * 100
-            
-            return FoodEntry(
-                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-                caloriesPer100g: servCal,
-                proteinPer100g: servProt,
-                carbsPer100g: Double(servingCarbs) ?? 0,
-                fatPer100g: Double(servingFat) ?? 0,
-                fiberPer100g: Double(servingFiber) ?? 0,
-                sugarPer100g: Double(servingSugar) ?? 0,
-                grams: totalGrams,
-                date: selectedDate,
-                inputMode: inputMode.rawValue,
-                servingSize: 100
-            )
-            
-        case .grams:
-            return FoodEntry(
-                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-                caloriesPer100g: Double(caloriesPer100g) ?? 0,
-                proteinPer100g: Double(proteinPer100g) ?? 0,
-                carbsPer100g: Double(carbsPer100g) ?? 0,
-                fatPer100g: Double(fatPer100g) ?? 0,
-                fiberPer100g: Double(fiberPer100g) ?? 0,
-                sugarPer100g: Double(sugarPer100g) ?? 0,
-                grams: Double(grams) ?? 0,
-                date: selectedDate,
-                inputMode: inputMode.rawValue
-            )
-        }
-    }
-    
+
     private func saveFood(_ food: FoodEntry) {
         context.insert(food)
         
