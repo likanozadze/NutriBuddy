@@ -47,10 +47,10 @@ struct UniformNutritionCard: View {
     let info: NutritionInfo
     let showBaseValue: Bool
     let isAnimating: Bool
-    
+    @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         VStack(spacing: 8) {
-
             HStack(spacing: 6) {
                 Image(systemName: info.icon)
                     .font(.system(size: 12, weight: .medium))
@@ -58,15 +58,14 @@ struct UniformNutritionCard: View {
                     .frame(width: 24, height: 24)
                     .background(info.color)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
-                
+
                 Text(info.label)
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
-                
+
                 Spacer()
             }
-            
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text("\(showBaseValue ? info.baseValue : info.value)")
@@ -75,13 +74,13 @@ struct UniformNutritionCard: View {
                     .foregroundColor(.primary)
                     .scaleEffect(isAnimating ? 1.1 : 1.0)
                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isAnimating)
-                
+
                 if let unit = info.unit {
                     Text(unit)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
             }
         }
@@ -89,12 +88,24 @@ struct UniformNutritionCard: View {
         .frame(maxWidth: .infinity, minHeight: 80, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(showBaseValue ? Color.white.opacity(0.3) : Color.white.opacity(0.7))
+                .fill(cardBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(showBaseValue ? .white.opacity(0.5) : .white.opacity(0.8), lineWidth: 1)
+                        .stroke(cardBorder, lineWidth: 1)
                 )
         )
+    }
+
+    private var cardBackground: some ShapeStyle {
+        if colorScheme == .dark {
+            return AnyShapeStyle(Color(.systemGray5))
+        } else {
+            return AnyShapeStyle(Color(.systemGray6).opacity(0.3))
+        }
+    }
+
+    private var cardBorder: Color {
+        colorScheme == .dark ? Color(.systemGray4) : Color.white.opacity(0.2)
     }
 }
 
