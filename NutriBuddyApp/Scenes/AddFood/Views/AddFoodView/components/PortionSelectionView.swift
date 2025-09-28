@@ -92,30 +92,40 @@ struct PortionSelectionView: View {
         }
     }
     
+    // Check if user has changed from default amount
+    private var hasChangedFromDefault: Bool {
+        calculatedGrams != defaultAmountForPortionType
+    }
+    
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(.systemGray6).opacity(0.3),
-                    Color(.systemGray5).opacity(0.5)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            ScrollView {
-                VStack(spacing: 24) {
-                    headerView
-                    foodCardView
-                    portionSelectionView
-                    nutritionalPreviewView
-                    actionButtonsView
-                    
-                    Spacer(minLength: 20)
+        StandardBackgroundView {
+            VStack(spacing: 24) {
+                StandardHeaderView(title: "Add Portion", onCancel: onCancel)
+                
+                FoodInformationCard(
+                    food: apiFood,
+                    nutritionData: NutritionDataFactory.createNutritionData(for: apiFood, ratio: 1.0),
+                    subtitle: "Per 100g serving",
+                    customIcon: "globe"
+                )
+                
+                portionSelectionView
+                
+                // Only show "Your Portion" card when user has changed from default
+                if hasChangedFromDefault {
+                    YourPortionPreviewCard(
+                        nutritionData: nutritionData,
+                        isAnimating: isAnimating
+                    )
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
+                
+                Spacer()
+                
+                StandardActionButtons(
+                    onCancel: onCancel,
+                    onSave: { onSave(calculatedGrams) },
+                    isValidInput: calculatedGrams > 0
+                )
             }
         }
         .sheet(isPresented: $showingPortionPicker) {
@@ -139,63 +149,6 @@ struct PortionSelectionView: View {
                 updateAmountFromText()
             }
         }
-    }
-    
-    private var headerView: some View {
-        HStack {
-            Button(action: onCancel) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.secondary)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
-                    )
-            }
-            
-            Spacer()
-            
-            Text("Add Portion")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            
-            Spacer()
-
-            Color.clear.frame(width: 44, height: 44)
-        }
-    }
-    
-    private var foodCardView: some View {
-        VStack(spacing: 24) {
-            VStack(spacing: 16) {
-                VStack(spacing: 8) {
-                    Text(apiFood.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.center)
-                    
-                    Text("Per 100g serving")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            UniformNutritionGrid(nutritionData: nutritionData, showBaseValues: true)
-        }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(.white.opacity(0.5), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-        )
     }
     
     private var portionSelectionView: some View {
@@ -265,98 +218,6 @@ struct PortionSelectionView: View {
         )
     }
     
-    private var nutritionalPreviewView: some View {
-        VStack(spacing: 16) {
-            Text("Your Portion")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            UniformNutritionGrid(nutritionData: nutritionData, showBaseValues: false, isAnimating: isAnimating)
-        }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.green.opacity(0.1),
-                            Color(.systemTeal).opacity(0.05)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.green.opacity(0.2), lineWidth: 1)
-                )
-                .shadow(color: .green.opacity(0.1), radius: 20, x: 0, y: 10)
-        )
-    }
-    
-    private var actionButtonsView: some View {
-        HStack(spacing: 16) {
-            Button(action: onCancel) {
-                Text("Cancel")
-                    .font(.body)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(.white.opacity(0.5), lineWidth: 1)
-                            )
-                    )
-                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
-            }
-            
-            Button(action: {
-                onSave(calculatedGrams)
-            }) {
-                Text("Add Food")
-                    .font(.body)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(
-                        LinearGradient(
-                            colors: [.blue, Color(red: 0.2, green: 0.4, blue: 0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: .blue.opacity(0.3), radius: 15, x: 0, y: 8)
-            }
-            .scaleEffect(calculatedGrams <= 0 ? 0.95 : 1.0)
-            .opacity(calculatedGrams <= 0 ? 0.6 : 1.0)
-            .disabled(calculatedGrams <= 0)
-        }
-        .padding(.bottom, 20)
-    }
-    
-    private func formatQuickAmountText(_ amount: Double) -> String {
-        switch selectedPortionType {
-        case .grams:
-            return "\(Int(amount))g"
-        case .milliliter:
-            return "\(Int(amount))mL"
-        default:
-            if amount == floor(amount) {
-                return "\(Int(amount)) \(selectedPortionType.unitLabel)"
-            } else {
-                return String(format: "%.1f %@", amount, selectedPortionType.unitLabel)
-            }
-        }
-    }
-    
     private func updateAmountFromText() {
         if let newAmount = Double(amountText), newAmount > 0 {
             amount = newAmount
@@ -365,9 +226,6 @@ struct PortionSelectionView: View {
         isAmountFieldFocused = false
     }
 }
-
-
-
 
 // MARK: - Portion Type Enum
 enum PortionType: String, CaseIterable, Hashable {

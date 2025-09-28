@@ -5,6 +5,7 @@
 //  Created by Lika Nozadze on 9/28/25.
 //
 
+
 import SwiftUI
 
 // MARK: - Food Card Protocol
@@ -175,7 +176,7 @@ struct StandardHeaderView: View {
     }
 }
 
-// MARK: - Your Portion Preview Card
+// MARK: - Your Portion Preview Card (Fixed for Dark Mode)
 struct YourPortionPreviewCard: View {
     let nutritionData: [NutritionInfo]
     let isAnimating: Bool
@@ -191,7 +192,7 @@ struct YourPortionPreviewCard: View {
             HStack {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundColor(.green)
+                    .foregroundColor(.blue)
                 
                 Text("Your Portion")
                     .font(.headline)
@@ -222,11 +223,11 @@ struct YourPortionPreviewCard: View {
     }
     
     private var cardBorder: Color {
-        colorScheme == .dark ? Color(.systemGray4) : Color.white.opacity(0.5)
+        colorScheme == .dark ? Color(.systemGray4) : Color.blue.opacity(0.2)
     }
     
     private var cardShadow: Color {
-        colorScheme == .dark ? Color.black.opacity(0.3) : Color.black.opacity(0.1)
+        colorScheme == .dark ? Color.black.opacity(0.3) : Color.blue.opacity(0.1)
     }
 }
 
@@ -437,84 +438,6 @@ struct ModernInputCard: View {
                     .foregroundColor(.primary)
                 Spacer()
             }
-            
-            content
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(cardBackground)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(cardBorder, lineWidth: 1)
-                )
-        )
-        .shadow(color: cardShadow, radius: 15, x: 0, y: 8)
-    }
-    
-    private var cardBackground: some ShapeStyle {
-        colorScheme == .dark ?
-            AnyShapeStyle(Color(.systemGray5)) :
-            AnyShapeStyle(Material.ultraThinMaterial)
-    }
-    
-    private var cardBorder: Color {
-        colorScheme == .dark ? Color(.systemGray4) : Color.white.opacity(0.5)
-    }
-    
-    private var cardShadow: Color {
-        colorScheme == .dark ? Color.black.opacity(0.3) : Color.black.opacity(0.1)
-    }
-}
-
-struct ModernTextField: View {
-    @Binding var text: String
-    let placeholder: String
-    let keyboardType: UIKeyboardType
-    @FocusState.Binding var isFocused: Bool
-    let focusColor: Color
-    @Environment(\.colorScheme) var colorScheme
-    
-    init(
-        text: Binding<String>,
-        placeholder: String,
-        keyboardType: UIKeyboardType = .default,
-        isFocused: FocusState<Bool>.Binding,
-        focusColor: Color = .blue
-    ) {
-        self._text = text
-        self.placeholder = placeholder
-        self.keyboardType = keyboardType
-        self._isFocused = isFocused
-        self.focusColor = focusColor
-    }
-    
-    var body: some View {
-        TextField(placeholder, text: $text)
-            .font(.title2)
-            .fontWeight(.medium)
-            .keyboardType(keyboardType)
-            .focused($isFocused)
-            .textFieldStyle(.plain)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(textFieldBackground)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isFocused ? focusColor : textFieldBorder, lineWidth: 2)
-                    )
-            )
-    }
-    
-    private var textFieldBackground: some ShapeStyle {
-        colorScheme == .dark ?
-            AnyShapeStyle(Color(.systemGray6)) :
-            AnyShapeStyle(Material.ultraThinMaterial)
-    }
-    
-    private var textFieldBorder: Color {
-        colorScheme == .dark ? Color(.systemGray4) : Color.white.opacity(0.5)
     }
 }

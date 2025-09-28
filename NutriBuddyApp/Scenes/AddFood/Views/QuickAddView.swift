@@ -4,6 +4,7 @@
 //
 //  Created by Lika Nozadze on 8/29/25.
 
+
 import SwiftUI
 
 // MARK: - QuickAddView
@@ -53,7 +54,7 @@ struct QuickAddView: View {
         }
         .sheet(item: $selectedAPIFood) { apiFood in
             NavigationStack {
-                ModernPortionSelectionView(
+                PortionSelectionView(
                     apiFood: apiFood,
                     onSave: { grams in
                         viewModel.addAPIFood(apiFood, grams: grams)
@@ -69,16 +70,18 @@ struct QuickAddView: View {
             .interactiveDismissDisabled(false)
         }
         .sheet(item: $selectedRecentFood) { recentFood in
-            ModernRecentFoodPortionView(
-                recentFood: recentFood,
-                onSave: { modifiedFood in
-                    onFoodSelected(modifiedFood)
-                    self.selectedRecentFood = nil
-                },
-                onCancel: {
-                    self.selectedRecentFood = nil
-                }
-            )
+            NavigationStack {
+                ModernRecentFoodPortionView(
+                    recentFood: recentFood,
+                    onSave: { modifiedFood in
+                        onFoodSelected(modifiedFood)
+                        self.selectedRecentFood = nil
+                    },
+                    onCancel: {
+                        self.selectedRecentFood = nil
+                    }
+                )
+            }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .interactiveDismissDisabled(false)
@@ -191,23 +194,6 @@ struct ModernSearchResultCard: View {
                                 .multilineTextAlignment(.leading)
                             
                             Spacer()
-                            
-                            if case .api(_) = result {
-                                Text("Database")
-                                    .font(.caption2)
-                                    .fontWeight(.medium)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        Capsule()
-                                            .fill(.blue.opacity(0.1))
-                                            .overlay(
-                                                Capsule()
-                                                    .stroke(.blue.opacity(0.3), lineWidth: 1)
-                                            )
-                                    )
-                                    .foregroundColor(.blue)
-                            }
                         }
                         
                        
@@ -215,9 +201,9 @@ struct ModernSearchResultCard: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "clock.arrow.circlepath")
                                     .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.orange)
                                 
-                                Text("Used \(recentFood.timesUsed) times")
+                                Text("Recently used")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 
@@ -226,16 +212,6 @@ struct ModernSearchResultCard: View {
                                         .font(.caption)
                                         .foregroundColor(.orange)
                                 }
-                            }
-                        } else {
-                            HStack(spacing: 8) {
-                                Image(systemName: "globe")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                
-                                Text("From food database")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
                             }
                         }
                     }
@@ -265,7 +241,7 @@ struct ModernSearchResultCard: View {
                             HStack(spacing: 4) {
                                 Image(systemName: info.icon)
                                     .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(getIconColor(for: info.label))
                                 Text("\(info.baseValue)\(info.unit ?? "")")
                                     .font(.caption)
                                     .fontWeight(.medium)
@@ -293,67 +269,19 @@ struct ModernSearchResultCard: View {
         }
         .buttonStyle(.plain)
     }
-}
-
-// MARK: - Modern API Food Portion Selection
-struct ModernPortionSelectionView: View {
-    let apiFood: APIFood
-    let onSave: (Double) -> Void
-    let onCancel: () -> Void
     
-    @State private var grams: String = "100"
-    @FocusState private var isInputFocused: Bool
-    
-    private var gramsValue: Double {
-        Double(grams) ?? 0
-    }
-    
-    private var ratio: Double {
-        gramsValue / 100.0
-    }
-    
-    private var nutritionData: [NutritionInfo] {
-        NutritionDataFactory.createNutritionData(for: apiFood, ratio: ratio)
-    }
-    
-    private var isValidInput: Bool {
-        gramsValue > 0
-    }
-    
-    var body: some View {
-        StandardBackgroundView {
-            VStack(spacing: 24) {
-                StandardHeaderView(title: "Select Portion", onCancel: onCancel)
-                
-                FoodInformationCard(
-                    food: apiFood,
-                    nutritionData: NutritionDataFactory.createNutritionData(for: apiFood, ratio: 1.0),
-                    customIcon: "globe"
-                )
-                
-                ModernWeightInputCard(
-                    grams: $grams,
-                    isInputFocused: $isInputFocused
-                )
-                
-                if isValidInput {
-                    YourPortionPreviewCard(
-                        nutritionData: nutritionData,
-                        isAnimating: true
-                    )
-                }
-                
-                Spacer()
-                
-                StandardActionButtons(
-                    onCancel: onCancel,
-                    onSave: { onSave(gramsValue) },
-                    isValidInput: isValidInput
-                )
-            }
-        }
-        .onTapGesture {
-            isInputFocused = false
+    private func getIconColor(for label: String) -> Color {
+        switch label {
+        case "Calories":
+            return .orange
+        case "Protein":
+            return .blue
+        case "Carbs":
+            return .green
+        case "Fat":
+            return .yellow
+        default:
+            return .secondary
         }
     }
 }
@@ -364,25 +292,16 @@ struct ModernRecentFoodPortionView: View {
     let onSave: (RecentFood) -> Void
     let onCancel: () -> Void
     
-    @State private var amount: String = ""
-    @State private var grams: String = ""
-    @FocusState private var isInputFocused: Bool
-    
-    private var isServingMode: Bool {
-        recentFood.isServingMode
-    }
-    
-    private var defaultServingSize: Double {
-        recentFood.servingSize ?? 100
-    }
+    @State private var selectedPortionType: PortionType = .grams
+    @State private var amount: Double = 100
+    @State private var showingPortionPicker = false
+    @State private var isAnimating = false
+    @State private var isEditingAmount = false
+    @State private var amountText = ""
+    @FocusState private var isAmountFieldFocused: Bool
     
     private var calculatedGrams: Double {
-        if isServingMode {
-            guard let servingAmount = Double(amount), servingAmount > 0 else { return 0 }
-            return servingAmount * defaultServingSize
-        } else {
-            return Double(grams) ?? 0
-        }
+        selectedPortionType == .grams ? amount : amount * selectedPortionType.gramsEquivalent(for: createAPIFoodFromRecentFood())
     }
     
     private var ratio: Double {
@@ -393,14 +312,27 @@ struct ModernRecentFoodPortionView: View {
         NutritionDataFactory.createNutritionData(for: recentFood, ratio: ratio)
     }
     
-    private var isValidInput: Bool {
-        if isServingMode {
-            guard let value = Double(amount) else { return false }
-            return value > 0
-        } else {
-            guard let value = Double(grams) else { return false }
-            return value > 0
+    private var quickAmounts: [Double] {
+        selectedPortionType == .grams ? [50, 100, 150, 200] : [0.5, 1, 1.5, 2]
+    }
+    
+    private var defaultAmountForPortionType: Double {
+        switch selectedPortionType {
+        case .grams:
+            return recentFood.servingSize ?? 100
+        case .piece, .slice, .serving, .handful:
+            return 1
+        case .cup, .tablespoon, .teaspoon, .ounce, .fluidOunce, .liter:
+            return 1
+        case .milliliter:
+            return 250
+        case .custom:
+            return 100
         }
+    }
+    
+    private var isValidInput: Bool {
+        calculatedGrams > 0
     }
     
     var body: some View {
@@ -415,23 +347,12 @@ struct ModernRecentFoodPortionView: View {
                     customIcon: "clock.arrow.circlepath"
                 )
                 
-                if isServingMode {
-                    ModernServingInputCard(
-                        amount: $amount,
-                        servingSize: defaultServingSize,
-                        isInputFocused: $isInputFocused
-                    )
-                } else {
-                    ModernWeightInputCard(
-                        grams: $grams,
-                        isInputFocused: $isInputFocused
-                    )
-                }
+                portionSelectionView
                 
-                if isValidInput {
+                if isValidInput && calculatedGrams != (recentFood.servingSize ?? 100) {
                     YourPortionPreviewCard(
                         nutritionData: nutritionData,
-                        isAnimating: true
+                        isAnimating: isAnimating
                     )
                 }
                 
@@ -444,16 +365,108 @@ struct ModernRecentFoodPortionView: View {
                 )
             }
         }
+        .sheet(isPresented: $showingPortionPicker) {
+            ModernPortionPickerView(
+                selectedPortion: $selectedPortionType,
+                onDismiss: { showingPortionPicker = false }
+            )
+        }
         .onAppear {
-            if isServingMode {
-                amount = "1"
+            if recentFood.isServingMode {
+                selectedPortionType = .serving
+                amount = 1
             } else {
-                grams = "100"
+                selectedPortionType = .grams
+                amount = recentFood.servingSize ?? 100
+            }
+            amountText = selectedPortionType == .grams ? "\(Int(amount))" : String(format: "%.1f", amount)
+        }
+        .onChange(of: selectedPortionType) { _, _ in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                amount = defaultAmountForPortionType
+                amountText = selectedPortionType == .grams ? "\(Int(amount))" : String(format: "%.1f", amount)
             }
         }
         .onTapGesture {
-            isInputFocused = false
+            if isEditingAmount {
+                updateAmountFromText()
+            }
         }
+    }
+    
+    private var portionSelectionView: some View {
+        VStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Serving Size")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                Button(action: {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        showingPortionPicker.toggle()
+                    }
+                }) {
+                    HStack(spacing: 12) {
+                        Text(selectedPortionType.emoji)
+                            .font(.title2)
+                        
+                        Text(selectedPortionType.displayName)
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
+                            .rotationEffect(.degrees(showingPortionPicker ? 180 : 0))
+                            .animation(.easeInOut(duration: 0.3), value: showingPortionPicker)
+                    }
+                    .padding(16)
+                    .background(
+                        LinearGradient(
+                            colors: [.blue, Color(red: 0.2, green: 0.4, blue: 0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .blue.opacity(0.3), radius: 15, x: 0, y: 8)
+                }
+                
+                AmountSelector(
+                    amount: $amount,
+                    amountText: $amountText,
+                    isEditingAmount: $isEditingAmount,
+                    isAmountFieldFocused: $isAmountFieldFocused,
+                    isAnimating: $isAnimating,
+                    selectedPortionType: selectedPortionType,
+                    calculatedGrams: calculatedGrams,
+                    quickAmounts: quickAmounts,
+                    onUpdateAmount: updateAmountFromText
+                )
+            }
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(.white.opacity(0.5), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+        )
+    }
+    
+    private func updateAmountFromText() {
+        if let newAmount = Double(amountText), newAmount > 0 {
+            amount = newAmount
+        }
+        isEditingAmount = false
+        isAmountFieldFocused = false
     }
     
     private func createModifiedFood() -> RecentFood {
@@ -471,107 +484,16 @@ struct ModernRecentFoodPortionView: View {
             lastUsed: recentFood.lastUsed
         )
     }
-}
-
-// MARK: - Modern Input Cards
-struct ModernWeightInputCard: View {
-    @Binding var grams: String
-    @FocusState.Binding var isInputFocused: Bool
     
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Image(systemName: "scalemass")
-                    .font(.system(size: 12))
-                    .foregroundColor(.blue)
-                Text("Weight in Grams")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            
-            TextField("e.g., 150", text: $grams)
-                .font(.title2)
-                .fontWeight(.medium)
-                .keyboardType(.decimalPad)
-                .focused($isInputFocused)
-                .textFieldStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isInputFocused ? .blue : .clear, lineWidth: 2)
-                        )
-                )
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.white.opacity(0.5), lineWidth: 1)
-                )
+    private func createAPIFoodFromRecentFood() -> APIFood {
+        return APIFood(
+            fdcId: 0,
+            description: recentFood.name,
+            foodNutrients: [],
+            dataType: nil,
+            commonNames: nil,
+            additionalDescriptions: nil
         )
-        .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 8)
-    }
-}
-
-struct ModernServingInputCard: View {
-    @Binding var amount: String
-    let servingSize: Double
-    @FocusState.Binding var isInputFocused: Bool
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Image(systemName: "number.circle")
-                    .font(.system(size: 20))
-                    .foregroundColor(.orange)
-                Text("Number of Servings")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            
-            VStack(spacing: 8) {
-                TextField("e.g., 1.5", text: $amount)
-                    .font(.title2)
-                    .fontWeight(.medium)
-                    .keyboardType(.decimalPad)
-                    .focused($isInputFocused)
-                    .textFieldStyle(.plain)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(isInputFocused ? .orange : .clear, lineWidth: 2)
-                            )
-                    )
-                
-                Text("1 serving = \(servingSize.formatted(.number.precision(.fractionLength(0...1))))g")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.white.opacity(0.5), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 8)
     }
 }
 
