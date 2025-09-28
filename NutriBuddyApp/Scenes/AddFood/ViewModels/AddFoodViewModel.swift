@@ -3,8 +3,7 @@
 //  NutriBuddyApp
 //
 //  Created by Lika Nozadze on 8/27/25.
-//
-//
+
 import SwiftUI
 import SwiftData
 import AVFoundation
@@ -35,7 +34,6 @@ final class AddFoodViewModel: ObservableObject {
     @Published var showAdvancedOptions = false
     @Published var selectedTab: AddFoodTab = .quickAdd
     
-    // Barcode-related properties
     @Published var showingBarcodeScanner = false
     @Published var showingBarcodeResult = false
     @Published var scannedBarcodeFood: BarcodeFood?
@@ -75,8 +73,33 @@ final class AddFoodViewModel: ObservableObject {
         self.context = context
     }
     
+    // MARK: - Locale-Aware Number Parsing
+    private func parseDouble(_ string: String) -> Double? {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return nil
+        }
+        
+      
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = Locale.current
+        
+        if let number = formatter.number(from: trimmed) {
+            return number.doubleValue
+        }
+        
+
+        let normalizedString = trimmed.replacingOccurrences(of: ",", with: ".")
+        return Double(normalizedString)
+    }
+    
+    private func safeDoubleValue(_ string: String) -> Double {
+        return parseDouble(string) ?? 0.0
+    }
+    
     // MARK: - Computed Properties for View
-  var isValidForm: Bool {
+    var isValidForm: Bool {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         
         switch inputMode {
@@ -85,54 +108,55 @@ final class AddFoodViewModel: ObservableObject {
                    isValidDouble(servingCalories) && isValidNonNegativeDouble(servingCalories)
             
         case .grams:
-          
             return isValidDouble(caloriesPer100g) && isValidNonNegativeDouble(caloriesPer100g) &&
                    isValidDouble(grams) && isValidPositiveDouble(grams)
         }
     }
 
-    private func safeDoubleValue(_ string: String) -> Double {
-        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? 0.0 : (Double(trimmed) ?? 0.0)
-    }
-
     var calculatedProtein: Double {
         switch inputMode {
         case .servings:
-            let prot = safeDoubleValue(servingProtein)
-            guard let amount = Double(servingAmount), amount > 0 else { return 0 }
+            let trimmedProtein = servingProtein.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmedProtein.isEmpty {
+                return 0  // No protein entered
+            }
+            guard let prot = parseDouble(trimmedProtein),
+                  let amount = parseDouble(servingAmount), amount > 0 else { return 0 }
             return prot * amount
+            
         case .grams:
-            let prot = safeDoubleValue(proteinPer100g)
-            guard let gr = Double(grams), gr > 0 else { return 0 }
+            let trimmedProtein = proteinPer100g.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmedProtein.isEmpty {
+                return 0  // No protein entered
+            }
+            guard let prot = parseDouble(trimmedProtein),
+                  let gr = parseDouble(grams), gr > 0 else { return 0 }
             return (prot * gr) / 100
         }
     }
-    
 
     var calculatedCalories: Double {
         switch inputMode {
         case .servings:
-            guard let cal = Double(servingCalories), cal >= 0,
-                  let amount = Double(servingAmount), amount > 0 else { return 0 }
+            guard let cal = parseDouble(servingCalories), cal >= 0,
+                  let amount = parseDouble(servingAmount), amount > 0 else { return 0 }
             return cal * amount
         case .grams:
-            guard let cal = Double(caloriesPer100g), cal >= 0,
-                  let gr = Double(grams), gr > 0 else { return 0 }
+            guard let cal = parseDouble(caloriesPer100g), cal >= 0,
+                  let gr = parseDouble(grams), gr > 0 else { return 0 }
             return (cal * gr) / 100
         }
     }
     
-    
     var calculatedCarbs: Double {
         switch inputMode {
         case .servings:
-            guard let carbs = Double(servingCarbs), carbs >= 0,
-                  let amount = Double(servingAmount), amount > 0 else { return 0 }
+            guard let carbs = parseDouble(servingCarbs), carbs >= 0,
+                  let amount = parseDouble(servingAmount), amount > 0 else { return 0 }
             return carbs * amount
         case .grams:
-            guard let carbs = Double(carbsPer100g), carbs >= 0,
-                  let gr = Double(grams), gr > 0 else { return 0 }
+            guard let carbs = parseDouble(carbsPer100g), carbs >= 0,
+                  let gr = parseDouble(grams), gr > 0 else { return 0 }
             return (carbs * gr) / 100
         }
     }
@@ -140,12 +164,12 @@ final class AddFoodViewModel: ObservableObject {
     var calculatedFat: Double {
         switch inputMode {
         case .servings:
-            guard let fat = Double(servingFat), fat >= 0,
-                  let amount = Double(servingAmount), amount > 0 else { return 0 }
+            guard let fat = parseDouble(servingFat), fat >= 0,
+                  let amount = parseDouble(servingAmount), amount > 0 else { return 0 }
             return fat * amount
         case .grams:
-            guard let fat = Double(fatPer100g), fat >= 0,
-                  let gr = Double(grams), gr > 0 else { return 0 }
+            guard let fat = parseDouble(fatPer100g), fat >= 0,
+                  let gr = parseDouble(grams), gr > 0 else { return 0 }
             return (fat * gr) / 100
         }
     }
@@ -153,12 +177,12 @@ final class AddFoodViewModel: ObservableObject {
     var calculatedFiber: Double {
         switch inputMode {
         case .servings:
-            guard let fiber = Double(servingFiber), fiber >= 0,
-                  let amount = Double(servingAmount), amount > 0 else { return 0 }
+            guard let fiber = parseDouble(servingFiber), fiber >= 0,
+                  let amount = parseDouble(servingAmount), amount > 0 else { return 0 }
             return fiber * amount
         case .grams:
-            guard let fiber = Double(fiberPer100g), fiber >= 0,
-                  let gr = Double(grams), gr > 0 else { return 0 }
+            guard let fiber = parseDouble(fiberPer100g), fiber >= 0,
+                  let gr = parseDouble(grams), gr > 0 else { return 0 }
             return (fiber * gr) / 100
         }
     }
@@ -166,12 +190,12 @@ final class AddFoodViewModel: ObservableObject {
     var calculatedSugar: Double {
         switch inputMode {
         case .servings:
-            guard let sugar = Double(servingSugar), sugar >= 0,
-                  let amount = Double(servingAmount), amount > 0 else { return 0 }
+            guard let sugar = parseDouble(servingSugar), sugar >= 0,
+                  let amount = parseDouble(servingAmount), amount > 0 else { return 0 }
             return sugar * amount
         case .grams:
-            guard let sugar = Double(sugarPer100g), sugar >= 0,
-                  let gr = Double(grams), gr > 0 else { return 0 }
+            guard let sugar = parseDouble(sugarPer100g), sugar >= 0,
+                  let gr = parseDouble(grams), gr > 0 else { return 0 }
             return (sugar * gr) / 100
         }
     }
@@ -226,7 +250,6 @@ final class AddFoodViewModel: ObservableObject {
         barcodeError = nil
         showingBarcodeError = false
     }
-    
     
     // MARK: - Private Barcode Methods
     private func checkCameraPermission(completion: @escaping (Bool) -> Void) {
@@ -381,20 +404,22 @@ final class AddFoodViewModel: ObservableObject {
     private func createFoodEntry() -> FoodEntry {
         switch inputMode {
         case .servings:
-            let servCal = Double(servingCalories) ?? 0
-            let servProt = safeDoubleValue(servingProtein)
-            let amount = Double(servingAmount) ?? 1
+            let servCal = parseDouble(servingCalories) ?? 0
+            let amount = parseDouble(servingAmount) ?? 1
+            
+
+            let proteinValue = parseDouble(servingProtein) ?? 0.0
             
             let totalGrams = amount * 100
             
             return FoodEntry(
                 name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                 caloriesPer100g: servCal,
-                proteinPer100g: servProt,
-                carbsPer100g: safeDoubleValue(servingCarbs),
-                fatPer100g: safeDoubleValue(servingFat),
-                fiberPer100g: safeDoubleValue(servingFiber),
-                sugarPer100g: safeDoubleValue(servingSugar),
+                proteinPer100g: proteinValue,
+                carbsPer100g: parseDouble(servingCarbs) ?? 0.0,
+                fatPer100g: parseDouble(servingFat) ?? 0.0,
+                fiberPer100g: parseDouble(servingFiber) ?? 0.0,
+                sugarPer100g: parseDouble(servingSugar) ?? 0.0,
                 grams: totalGrams,
                 date: selectedDate,
                 inputMode: inputMode.rawValue,
@@ -404,18 +429,19 @@ final class AddFoodViewModel: ObservableObject {
         case .grams:
             return FoodEntry(
                 name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-                caloriesPer100g: Double(caloriesPer100g) ?? 0,
-                proteinPer100g: safeDoubleValue(proteinPer100g),
-                carbsPer100g: safeDoubleValue(carbsPer100g),
-                fatPer100g: safeDoubleValue(fatPer100g),
-                fiberPer100g: safeDoubleValue(fiberPer100g),
-                sugarPer100g: safeDoubleValue(sugarPer100g),
-                grams: Double(grams) ?? 0,
+                caloriesPer100g: parseDouble(caloriesPer100g) ?? 0,
+                proteinPer100g: parseDouble(proteinPer100g) ?? 0.0,
+                carbsPer100g: parseDouble(carbsPer100g) ?? 0.0,
+                fatPer100g: parseDouble(fatPer100g) ?? 0.0,
+                fiberPer100g: parseDouble(fiberPer100g) ?? 0.0,
+                sugarPer100g: parseDouble(sugarPer100g) ?? 0.0,
+                grams: parseDouble(grams) ?? 0,
                 date: selectedDate,
                 inputMode: inputMode.rawValue
             )
         }
     }
+    
     // MARK: - Private Methods
     private func generateFoodTemplates(from foods: [FoodEntry]) async -> [RecentFood] {
         return await Task.detached {
@@ -444,7 +470,6 @@ final class AddFoodViewModel: ObservableObject {
         }.value
     }
     
-
     private func saveFood(_ food: FoodEntry) {
         context.insert(food)
         
@@ -457,20 +482,53 @@ final class AddFoodViewModel: ObservableObject {
     
     // MARK: - Validation Helpers
     private func isValidDouble(_ string: String) -> Bool {
-        return Double(string) != nil
+        return parseDouble(string) != nil
     }
     
     private func isValidPositiveDouble(_ string: String) -> Bool {
-        guard let value = Double(string) else { return false }
+        guard let value = parseDouble(string) else { return false }
         return value > 0
     }
     
     private func isValidNonNegativeDouble(_ string: String) -> Bool {
-        guard let value = Double(string) else { return false }
+        guard let value = parseDouble(string) else { return false }
         return value >= 0
     }
     
+    // MARK: - Debug Methods (Remove in production)
+    func debugNumberParsing() {
+        let testValues = ["17,9", "17.9", "10,5", "10.5", "", "abc"]
+        
+        for value in testValues {
+            print("Testing '\(value)':")
+            print("  parseDouble: \(parseDouble(value) ?? -999)")
+            print("  Double(): \(Double(value) ?? -999)")
+            print("  safeDoubleValue: \(safeDoubleValue(value))")
+            print("---")
+        }
+    }
     
+    func debugProteinParsing() {
+        switch inputMode {
+        case .servings:
+            let trimmed = servingProtein.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("Serving Protein Debug:")
+            print("  Raw value: '\(servingProtein)'")
+            print("  Trimmed value: '\(trimmed)'")
+            print("  Is empty: \(trimmed.isEmpty)")
+            print("  Parsed value: \(parseDouble(trimmed) ?? -999)")
+            print("  Final protein value: \(parseDouble(trimmed) ?? 0.0)")
+            
+        case .grams:
+            let trimmed = proteinPer100g.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("Protein Per 100g Debug:")
+            print("  Raw value: '\(proteinPer100g)'")
+            print("  Trimmed value: '\(trimmed)'")
+            print("  Is empty: \(trimmed.isEmpty)")
+            print("  Parsed value: \(parseDouble(trimmed) ?? -999)")
+            print("  Final protein value: \(parseDouble(trimmed) ?? 0.0)")
+        }
+    }
 }
 
 // MARK: - Barcode Food Validation
