@@ -75,7 +75,7 @@ struct FoodInformationCard<Food: FoodDisplayable>: View {
             HStack(alignment: .top, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(food.name)
-                        .font(.title2)
+                        .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)

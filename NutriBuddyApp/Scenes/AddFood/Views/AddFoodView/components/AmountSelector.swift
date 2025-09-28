@@ -62,6 +62,8 @@ struct AmountSelector: View {
                                 .foregroundColor(.primary)
                                 .scaleEffect(isAnimating ? 1.1 : 1.0)
                                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isAnimating)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                         }
                     }
                     
@@ -118,9 +120,17 @@ struct AmountSelector: View {
     }
     
     private func formatAmount() -> String {
-        selectedPortionType == .grams ? "\(Int(amount))" : String(format: "%.1f", amount)
+        if selectedPortionType == .grams {
+            return "\(Int(amount))"
+        } else {
+          
+            if amount == floor(amount) {
+                return "\(Int(amount))"
+            } else {
+                return String(format: "%.1f", amount)
+            }
+        }
     }
-    
     private func formatQuickAmountText(_ amount: Double) -> String {
         switch selectedPortionType {
         case .grams:

@@ -55,26 +55,29 @@ struct MainView: View {
                         if !foodListViewModel.dailyFoods.isEmpty {
                             FoodLogHeaderCard(foodCount: foodListViewModel.dailyFoods.count)
                             
-                           
                             List {
                                 ForEach(foodListViewModel.dailyFoods, id: \.id) { food in
-                                    FoodItemCard(food: food)
-                                        .listRowBackground(Color.clear)
-                                        .listRowSeparator(.hidden)
-                                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                                        .swipeActions(edge: .trailing) {
-                                            Button("Delete", role: .destructive) {
-                                                withAnimation {
-                                                    foodListViewModel.deleteFood(food)
-                                                    scheduleProgressUpdate()
-                                                }
+                                    NavigationLink(destination: EditFoodView(food: food)) {
+                                        FoodItemCard(food: food)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                    .swipeActions(edge: .trailing) {
+                                        Button("Delete", role: .destructive) {
+                                            withAnimation {
+                                                foodListViewModel.deleteFood(food)
+                                                scheduleProgressUpdate()
                                             }
                                         }
+                                    }
                                 }
                             }
                             .listStyle(.plain)
+                            
                             .scrollDisabled(true)
-                            .frame(height: CGFloat(foodListViewModel.dailyFoods.count * 100))
+                            .frame(height: CGFloat(foodListViewModel.dailyFoods.count * 70))
                         } else {
                             EmptyFoodLogView(onAddFood: {
                             })
@@ -113,7 +116,6 @@ struct MainView: View {
         }
     }
     
-
     private var macroColumns: [GridItem] {
         [
             GridItem(.flexible(), spacing: 16),
