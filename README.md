@@ -46,5 +46,97 @@ Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your
 - **HealthKit** — Step tracking integration
 - **USDA FoodData Central API** — Food database
 
-## Clone the project
+## Requirements
 
+- iOS 15.0 or later
+- iPhone (iPad support coming soon)
+- Camera permission for barcode scanning
+- HealthKit permission (optional, for step tracking)
+
+## Installation
+
+### Building from Source
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/likanozadze/NutriBuddy.git
+   ```
+
+2. Open the project in Xcode:
+   ```bash
+   open NutriBuddy.xcodeproj
+   ```
+
+3. Select your target device and press `Cmd + R` to build and run
+
+### Permissions
+
+NutriBuddy requires the following permissions:
+- **Camera** — For barcode scanning
+- **HealthKit** — For step tracking (optional but recommended)
+
+Add these to your `Info.plist`:
+```xml
+<key>NSCameraUsageDescription</key>
+<string>We need camera access to scan food barcodes.</string>
+<key>NSHealthShareUsageDescription</key>
+<string>We access your step data to show your daily activity.</string>
+```
+
+## Usage
+
+### Getting Started
+
+1. **Complete Onboarding** — Set your profile (gender, height, weight, activity level, fitness goal)
+2. **View Daily Target** — See your personalized calorie and macro targets on the home screen
+3. **Log Food** — Use any of the three methods to add food items
+
+### Logging Food
+
+**Manual Entry:** Tap the "+" button and select Manual. Enter the food name, amount eaten, and macros per 100g.
+
+**Barcode Scan:** Tap the barcode icon and point your camera at a food barcode. Nutrition data populates automatically.
+
+**Database Search:** Tap the API button to search the USDA database. Adjust portion size and add to your log.
+
+### Track Your Progress
+
+- Watch your daily progress bar update as you log meals
+- Check macro breakdowns to ensure you hit your targets
+- Review your daily steps integrated from HealthKit
+
+### Update Your Profile
+
+Visit the Profile tab to adjust your information—weight changes, new fitness goals, or updated activity level all automatically recalculate your daily targets.
+
+## Architecture
+
+The app follows a clean, modular structure:
+
+- **Views** — SwiftUI components for UI
+- **Models** — Data structures for food items, logs, and user profile
+- **Managers** — Services for API calls, barcode scanning, and HealthKit access
+- **Database** — SwiftData models for persistence
+
+## Future Enhancements
+
+- iPad support
+- Meal presets and recipes
+- Weekly/monthly nutrition reports
+- Export nutrition data
+
+## Contributing
+
+This is a personal project, but feel free to fork and modify for your own use!
+
+## License
+
+MIT License — feel free to use, modify, and distribute.
+
+## Contact
+
+Created by Lika Nozadze
+
+---
+
+**Ready to simplify your fitness tracking?** Download NutriBuddy and focus on what matters—hitting your nutrition goals.
