@@ -8,6 +8,8 @@ NutriBuddy was born from a personal fitness journey. When you're just starting y
 
 Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your nutrition toward your goals. No unnecessary social features, no ads, just straightforward macro tracking.
 
+## Screenshots
+
 <img width="793" height="958" alt="Image" src="https://github.com/user-attachments/assets/c00e2589-5542-4c07-8910-9540d1f8e018" />
 
 ## Features
@@ -61,7 +63,7 @@ Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/likanozadze/NutriBuddy.git
+   git clone https://github.com/yourusername/NutriBuddy.git
    ```
 
 2. Open the project in Xcode:
