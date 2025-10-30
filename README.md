@@ -10,10 +10,7 @@ NutriBuddy was born from a personal fitness journey. When you're just starting y
 
 Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your nutrition toward your goals. No unnecessary social features, no ads, just straightforward macro tracking.
 
-<img width="400" height="485" alt="Image" src="https://github.com/user-attachments/assets/67bacc5d-01fb-4ca2-9efa-96ebff1bfd66" />
-<br/>
-<br/>
-<img width="400" height="485" alt="Image" src="https://github.com/user-attachments/assets/a0f6e271-1164-443b-a8d1-48a319217e16" />
+<img width="600" height="728" alt="Image" src="https://github.com/user-attachments/assets/67bacc5d-01fb-4ca2-9efa-96ebff1bfd66" />
 
 ## Features
 
