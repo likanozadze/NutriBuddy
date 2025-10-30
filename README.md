@@ -52,7 +52,7 @@ Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your
 
 ## Requirements
 
-- iOS 15.0 or later
+- iOS 17.0 or later
 - iPhone (iPad support coming soon)
 - Camera permission for barcode scanning
 - HealthKit permission (optional, for step tracking)
