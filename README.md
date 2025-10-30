@@ -1,3 +1,5 @@
+
+
 # NutriBuddy
 
 A lightweight, simple macronutrient tracking app built with SwiftUI. Track your calories, protein, carbs, fats, and fiber with three flexible input methods: manual entry, barcode scanning, or food database lookup.
@@ -8,9 +10,7 @@ NutriBuddy was born from a personal fitness journey. When you're just starting y
 
 Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your nutrition toward your goals. No unnecessary social features, no ads, just straightforward macro tracking.
 
-## Screenshots
-
-<img width="793" height="958" alt="Image" src="https://github.com/user-attachments/assets/c00e2589-5542-4c07-8910-9540d1f8e018" />
+<img width="800" height="970" alt="Image" src="https://github.com/user-attachments/assets/67bacc5d-01fb-4ca2-9efa-96ebff1bfd66" />
 
 ## Features
 
@@ -63,7 +63,7 @@ Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/NutriBuddy.git
+   git clone https://github.com/likanozadze/NutriBuddy.git
    ```
 
 2. Open the project in Xcode:
