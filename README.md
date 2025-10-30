@@ -13,7 +13,6 @@ Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your
 <img width="400" height="485" alt="Image" src="https://github.com/user-attachments/assets/67bacc5d-01fb-4ca2-9efa-96ebff1bfd66" />
 <br/>
 <br/>
-<br/>
 <img width="400" height="485" alt="Image" src="https://github.com/user-attachments/assets/a0f6e271-1164-443b-a8d1-48a319217e16" />
 
 ## Features
