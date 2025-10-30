@@ -45,3 +45,6 @@ Unlike feature-heavy alternatives, NutriBuddy does one thing well: tracking your
 - **AVFoundation** — Camera and barcode scanning
 - **HealthKit** — Step tracking integration
 - **USDA FoodData Central API** — Food database
+
+## Clone the project
+
